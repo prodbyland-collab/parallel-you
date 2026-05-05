@@ -48,6 +48,9 @@ export type HiddenTraits = {
   creativity: number;
   social: number;
   confidence: number;
+  fatigue: number;
+  regret: number;
+  momentum: number;
   luck: number;
 };
 
@@ -79,12 +82,18 @@ export type ChoiceEffect = Partial<Omit<HiddenTraits, "luck">> & {
 export type StoryChoice = {
   id: string;
   text: string;
+  type?: "work" | "avoid" | "risk" | "social" | "rest" | "repair" | "finish" | "start_over";
   effect: ChoiceEffect;
+  effects?: ChoiceEffect;
   flags?: StoryFlag[];
+  flagsAdded?: StoryFlag[];
   nextScene?: string;
   auto?: boolean;
   consequenceHint?: string;
   delayedCallbackPossible?: boolean;
+  createsThread?: string;
+  resolvesThread?: string;
+  endingInfluence?: string;
 };
 
 export type StoryScene = {
@@ -191,12 +200,25 @@ export type StoryRunState = {
   miniGamesCompleted: string[];
   rareMomentsTriggered: MovieMoment[];
   missedMoments: string[];
+  missedOpportunities?: string[];
+  consequenceThreads: ConsequenceThread[];
   relationshipMoments: string[];
+  turningPoints: string[];
+  repeatedPatterns: string[];
+  endingSeeds: string[];
   emotionalConsequences: string[];
   generatedTextHistory: string[];
   storySignature: string;
   replayCount: number;
   seed: number;
+};
+
+export type ConsequenceThread = {
+  id: string;
+  theme: string;
+  createdBy: string;
+  status: "open" | "resolved" | "unresolved";
+  weight: number;
 };
 
 export type AIChoiceDraft = {

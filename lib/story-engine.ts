@@ -67,7 +67,12 @@ export function createInitialRun(profile: PlayerProfile): StoryRunState {
     miniGamesCompleted: [],
     rareMomentsTriggered: [],
     missedMoments: [],
+    missedOpportunities: [],
+    consequenceThreads: [],
     relationshipMoments: [],
+    turningPoints: [],
+    repeatedPatterns: [],
+    endingSeeds: [],
     emotionalConsequences: [],
     generatedTextHistory: [],
     storySignature: "",
@@ -79,12 +84,14 @@ export function createInitialRun(profile: PlayerProfile): StoryRunState {
 }
 
 export function getScene(state: StoryRunState): StoryScene {
+  if (state.currentSceneId.startsWith("adaptive_")) return createAdaptiveShellScene(state);
   const template = baseStoryScenes.find((scene) => scene.id === state.currentSceneId) ?? baseStoryScenes[0];
   return hydrateScene(template, state);
 }
 
 export function getAllScenes(state: StoryRunState) {
-  return baseStoryScenes.map((template) => hydrateScene(template, state));
+  const count = Math.max(10, Math.min(25, state.sceneHistory.length + 1));
+  return Array.from({ length: count }, (_, index) => index < baseStoryScenes.length ? hydrateScene(baseStoryScenes[index], state) : createAdaptiveShellScene({ ...state, currentSceneId: `adaptive_${index + 1}` }));
 }
 
 export function chooseSceneOption(state: StoryRunState, choice: StoryChoice, shownScene?: StoryScene): StoryRunState {
@@ -291,6 +298,27 @@ function mergeFlags(current: StoryFlag[], incoming: StoryFlag[]) {
 
 function appendUnique(items: string[], item: string) {
   return items.includes(item) ? items : [...items, item];
+}
+
+function createAdaptiveShellScene(state: StoryRunState): StoryScene {
+  const index = state.sceneHistory.length;
+  const act = index < 4 ? 1 : index < 10 ? 2 : 3;
+  const mood = state.traits.regret > 65 ? "tense" : state.traits.fatigue > 70 ? "tired" : state.traits.momentum > 75 ? "breakthrough" : "focused";
+  const environment = state.profile.parsedProfile?.goalCategory === "music" || state.profile.parsedProfile?.goalCategory === "writing" || state.profile.parsedProfile?.goalCategory === "business" ? "studio" : "bedroom";
+  return {
+    id: state.currentSceneId,
+    act,
+    title: "The Next Ordinary Thing",
+    year: 2026 + Math.floor(index / 4),
+    narration: "The story waits for the next small thing.",
+    environment,
+    mood,
+    choices: [
+      { id: `adaptive_work_${index}`, text: "Do one small useful thing", type: "work", effect: { momentum: 4, confidence: 1 }, flags: ["stayed_consistent"] },
+      { id: `adaptive_risk_${index}`, text: "Send it before it feels ready", type: "risk", effect: { risk: 4, confidence: 2, regret: -2 }, flags: ["sent_unfinished", "took_big_risk"] },
+      { id: `adaptive_avoid_${index}`, text: "Do nothing and let the tab stay open", type: "avoid", effect: { regret: 5, momentum: -3 }, flags: ["did_nothing", "avoided_work"] }
+    ]
+  };
 }
 
 function updateMissedMoments(state: StoryRunState, scene: StoryScene, choice: StoryChoice) {

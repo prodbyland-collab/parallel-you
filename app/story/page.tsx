@@ -9,11 +9,15 @@ import { FunLayer } from "@/components/story/FunLayer";
 import { Letterbox } from "@/components/story/Letterbox";
 import { SceneProgress } from "@/components/story/SceneProgress";
 import { SubtitleNarration } from "@/components/story/SubtitleNarration";
-import { generateConsequenceWithAI, generateEndingWithAI, generateNextSceneWithAI } from "@/lib/ai-writer";
+import { generateAdaptiveEnding } from "@/lib/ai-ending-generator";
+import { generateAdaptiveScene } from "@/lib/ai-scene-generator";
+import { directNextStep, type DirectorDecision } from "@/lib/ai-story-director";
+import { generateConsequenceWithAI } from "@/lib/ai-writer";
 import { getEndingHistory, isEndingTooSimilar, regenerateEndingVariant, saveEndingHistory } from "@/lib/ending-history";
-import { generateEnding } from "@/lib/ending-generator";
-import { applyGeneratedConsequence, chooseSceneOption, collectMemoryObject, completeMiniGame, getAllScenes, getScene, isEnding, triggerChaosEvent } from "@/lib/story-engine";
+import { applyGeneratedConsequence, collectMemoryObject, completeMiniGame, getAllScenes, getScene, triggerChaosEvent } from "@/lib/story-engine";
 import { createStoryMemory } from "@/lib/story-memory";
+import { processChoice } from "@/lib/process-choice";
+import { toStoryState } from "@/lib/story-state";
 import { getStoryTextHistory, hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState, saveStoryTextHistory } from "@/lib/story-storage";
 import type { MemoryObject, StoryChoice, StoryRunState, StoryScene } from "@/lib/story-types";
 
@@ -22,6 +26,7 @@ export default function StoryPage() {
   const [state, setState] = useState<StoryRunState | null>(null);
   const [generatedScene, setGeneratedScene] = useState<StoryScene | null>(null);
   const [consequenceLines, setConsequenceLines] = useState<string[]>([]);
+  const [directorDecision, setDirectorDecision] = useState<DirectorDecision | null>(null);
   const [sceneLoading, setSceneLoading] = useState(false);
   const [choicesVisible, setChoicesVisible] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
@@ -46,8 +51,11 @@ export default function StoryPage() {
     setGeneratedScene(null);
     setChoicesVisible(false);
     setSceneLoading(true);
-    const memory = createStoryMemory(state, baseScene, allScenes, getEndingHistory(), undefined, getStoryTextHistory());
-    generateNextSceneWithAI(memory, baseScene).then((nextScene) => {
+    const adaptiveState = toStoryState(state, getStoryTextHistory());
+    directNextStep(adaptiveState).then(async (decision) => {
+      if (cancelled) return;
+      setDirectorDecision(decision);
+      const nextScene = await generateAdaptiveScene(adaptiveState, decision);
       if (cancelled) return;
       setGeneratedScene(nextScene);
       saveStoryTextHistory([nextScene.title, nextScene.narration, ...nextScene.choices.map((choice) => choice.text)]);
@@ -94,12 +102,15 @@ export default function StoryPage() {
       const consequence = await generateConsequenceWithAI(choice, memory);
       setConsequenceLines(consequence.consequenceLines);
       saveStoryTextHistory([choice.text, ...consequence.consequenceLines]);
-      const next = applyGeneratedConsequence(chooseSceneOption(state, choice, scene), consequence.consequenceLines, consequence.delayedFlag);
-      if (isEnding(next)) {
+      const processed = processChoice(choice, state, scene);
+      const next = applyGeneratedConsequence(processed, consequence.consequenceLines, consequence.delayedFlag);
+      const adaptiveState = toStoryState(next, getStoryTextHistory());
+      const decision = await directNextStep(adaptiveState);
+      const shouldEnd = decision.action === "move_to_ending" || decision.endingReadinessScore >= 88 || next.sceneHistory.length >= 25;
+      if (shouldEnd) {
         const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
         const history = getEndingHistory();
-        const endingMemory = createStoryMemory(finalState, scene, allScenes, history, choice, getStoryTextHistory());
-        const draftEnding = await generateEndingWithAI(endingMemory, finalState).catch(() => generateEnding(finalState));
+        const draftEnding = await generateAdaptiveEnding(toStoryState(finalState, getStoryTextHistory()), finalState, history);
         const ending = isEndingTooSimilar(draftEnding, history) ? regenerateEndingVariant(draftEnding, finalState.profile, finalState) : draftEnding;
         saveStoryState(finalState);
         saveEnding(ending);
@@ -109,6 +120,7 @@ export default function StoryPage() {
         router.push("/ending");
         return;
       }
+      setDirectorDecision(decision);
       updateRunState(next);
       setTransitioning(false);
     }, 900);
@@ -159,6 +171,11 @@ export default function StoryPage() {
             {consequenceLines.length > 0 && (
               <div className="event-pop mb-3 max-w-2xl rounded-2xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm leading-6 text-slate-100 backdrop-blur-xl">
                 {consequenceLines.map((line) => <span key={line} className="block">{line}</span>)}
+              </div>
+            )}
+            {directorDecision?.reason && (
+              <div className="sr-only" aria-live="polite">
+                Next scene direction: {directorDecision.reason}
               </div>
             )}
             <SubtitleNarration key={scene.id} text={scene.narration} onComplete={handleNarrationComplete} />

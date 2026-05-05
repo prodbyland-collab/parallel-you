@@ -37,6 +37,9 @@ export function createInitialTraits(profile: PlayerProfile, seed: number): Hidde
     creativity: profile.creativity * 8 + random() * 12,
     social: profile.social * 8 + random() * 12,
     confidence: profile.confidence * 8 + random() * 12,
+    fatigue: 18 + random() * 16,
+    regret: 10 + random() * 12,
+    momentum: 24 + profile.consistency * 4 + random() * 14,
     luck: 24 + profile.confidence * 4 + random() * 24
   };
 }
@@ -53,6 +56,9 @@ export function applyTraitEffect(traits: HiddenTraits, effect: Partial<HiddenTra
     creativity: clampTrait(traits.creativity + (effect.creativity ?? 0)),
     social: clampTrait(traits.social + (effect.social ?? 0)),
     confidence: clampTrait(traits.confidence + (effect.confidence ?? 0)),
+    fatigue: clampTrait(traits.fatigue + (effect.fatigue ?? 0)),
+    regret: clampTrait(traits.regret + (effect.regret ?? 0)),
+    momentum: clampTrait(traits.momentum + (effect.momentum ?? 0)),
     luck: clampTrait(traits.luck + (effect.luck ?? 0))
   };
 }
