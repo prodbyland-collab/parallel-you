@@ -57,8 +57,8 @@ export function applyTraitEffect(traits: HiddenTraits, effect: Partial<HiddenTra
 export const wildCards: WildCardEvent[] = [
   {
     id: "message-after-midnight",
-    title: "The Message After Midnight",
-    narration: "A message arrives from someone who saw your work when you thought no one was watching.",
+    title: "The Late-Night Message",
+    narration: "A message arrives from someone who saw your work when you thought nobody noticed.",
     environment: "city",
     mood: "hopeful",
     effect: { social: 8, creativity: 5, luck: 6 },
@@ -68,7 +68,7 @@ export const wildCards: WildCardEvent[] = [
   {
     id: "quiet-burnout",
     title: "Quiet Burnout",
-    narration: "Your body says what your calendar refused to admit. The lights stay on, but you move slower.",
+    narration: "Your body finally says what your schedule ignored. The lights stay on, but you move slower.",
     environment: "bedroom",
     mood: "tired",
     effect: { discipline: -5, consistency: -6, creativity: -4 },
@@ -77,8 +77,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "public-miss",
-    title: "The Public Miss",
-    narration: "You try something before it is ready. It stings. It also proves you survived being seen.",
+    title: "The Public Mistake",
+    narration: "You try something before it is ready. It hurts, but it also proves you can survive being seen.",
     environment: "city",
     mood: "tense",
     effect: { risk: 8, creativity: 4, social: -4 },
@@ -87,8 +87,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "strange-spark",
-    title: "The Strange Spark",
-    narration: "At the wrong hour, in the wrong mood, the right idea finally appears.",
+    title: "The Strange Idea",
+    narration: "At a bad time, in a bad mood, a good idea finally appears.",
     environment: "studio",
     mood: "breakthrough",
     effect: { creativity: 11, luck: 4 },
@@ -98,7 +98,7 @@ export const wildCards: WildCardEvent[] = [
   {
     id: "perfect-room",
     title: "The Perfect Room",
-    narration: "For one night, timing, courage, and attention all stand in the same room.",
+    narration: "For one night, timing, courage, and attention all show up together.",
     environment: "spotlight",
     mood: "breakthrough",
     effect: { luck: 14, social: 10, risk: 8 },
@@ -108,7 +108,7 @@ export const wildCards: WildCardEvent[] = [
   {
     id: "total-reset",
     title: "The Total Reset",
-    narration: "Something ends. It hurts less like failure and more like a door finally closing.",
+    narration: "Something ends. It hurts, but it also feels like a door finally closing.",
     environment: "void",
     mood: "lost",
     effect: { consistency: 8, discipline: 4, risk: -5 },

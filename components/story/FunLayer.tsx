@@ -53,7 +53,7 @@ export function FunLayer({
         className="fun-button border-amber-200/30 bg-amber-300/12 text-amber-50 disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Zap size={16} />
-        {chaosUsed ? "Unexpected thing already happened" : "Do Something Unexpected"}
+        {chaosUsed ? "You already used your surprise" : "Do Something Unexpected"}
       </button>
 
       {latestChaos && (
@@ -72,7 +72,7 @@ export function FunLayer({
 
       {moodShift && (
         <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm leading-6 text-cyan-50">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Mood shift</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">The mood changes</p>
           {moodShift}
         </div>
       )}
@@ -102,7 +102,7 @@ function MemoryPickup({ memory, collected, onCollect }: { memory: MemoryObject; 
     <button onClick={onCollect} disabled={collected} className="memory-pickup text-left disabled:cursor-default disabled:opacity-70">
       <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-void"><Icon size={18} /></span>
       <span>
-        <span className="block text-xs font-black uppercase tracking-[0.2em] text-cyan-200">{collected ? "Collected" : "Memory object"}</span>
+        <span className="block text-xs font-black uppercase tracking-[0.2em] text-cyan-200">{collected ? "Collected" : "Memory item"}</span>
         <span className="block font-black text-white">{memory.name}</span>
         <span className="block text-xs leading-5 text-slate-300">{memory.description}</span>
       </span>
@@ -114,14 +114,14 @@ function MemoryShelf({ memories }: { memories: MemoryObject[] }) {
   if (!memories.length) {
     return (
       <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-xs leading-5 text-slate-400">
-        Memory shelf empty. The film is waiting for tiny evidence.
+        No memories yet. Collect small items during the story.
       </div>
     );
   }
 
   return (
     <div className="rounded-2xl border border-white/10 bg-black/35 p-3">
-      <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-300">Memory shelf</p>
+      <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-slate-300">Your memories</p>
       <div className="flex flex-wrap gap-2">
         {memories.map((memory) => {
           const Icon = memoryIcons[memory.id];
@@ -187,13 +187,13 @@ function MiniGame({ type, sceneId, disabled, onComplete, hasMemory }: { type: Mi
   };
 
   if (done) {
-    return <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-100">Mini-game cleared. The Life Core liked that.</div>;
+    return <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-100">Nice. The Life Core got stronger.</div>;
   }
 
   if (type === "hold") {
     return (
       <button onPointerDown={holdStart} disabled={disabled} className="mini-game text-left disabled:opacity-55">
-        <b>Hold to push through</b>
+        <b>Hold to keep going</b>
         <span className="mt-2 block h-2 overflow-hidden rounded-full bg-white/10"><span className="block h-full bg-cyan-200" style={{ width: `${holdProgress}%` }} /></span>
       </button>
     );
@@ -202,7 +202,7 @@ function MiniGame({ type, sceneId, disabled, onComplete, hasMemory }: { type: Mi
   if (type === "timed-choice") {
     return (
       <button onClick={finish} disabled={disabled} className="mini-game text-left disabled:opacity-55">
-        <b>Choose before the room overthinks it</b>
+        <b>Choose before time runs out</b>
         <span className="mt-1 block text-sm text-amber-100">{timeLeft}s left</span>
       </button>
     );
@@ -211,8 +211,8 @@ function MiniGame({ type, sceneId, disabled, onComplete, hasMemory }: { type: Mi
   if (type === "drag-memory") {
     return (
       <button onClick={finish} disabled={disabled || !hasMemory} className="mini-game text-left disabled:opacity-55">
-        <b>Drop a memory into the Life Core</b>
-        <span className="mt-1 flex items-center gap-2 text-sm text-slate-300"><Orbit size={14} /> {hasMemory ? "Tap to fuse your shelf into the scene" : "Collect a memory first"}</span>
+        <b>Add a memory to the Life Core</b>
+        <span className="mt-1 flex items-center gap-2 text-sm text-slate-300"><Orbit size={14} /> {hasMemory ? "Tap to add one of your memories" : "Collect a memory first"}</span>
       </button>
     );
   }

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DIRECT YOUR LIFE",
-  description: "A cinematic interactive story game about the life your choices create."
+  description: "A playful story game about how your choices can change your life."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

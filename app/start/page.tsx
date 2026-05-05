@@ -24,15 +24,15 @@ const questions = [
   { key: "name", label: "Name or nickname", placeholder: "Giorgi", type: "text" },
   { key: "age", label: "Age", placeholder: "25", type: "number" },
   { key: "country", label: "Country", placeholder: "Georgia", type: "text" },
-  { key: "goal", label: "The thing your future keeps asking for", placeholder: "Make music, build a company, change my body...", type: "textarea" },
-  { key: "whatIf", label: "The old scene you keep replaying", placeholder: "What if I had started earlier?", type: "textarea" }
+  { key: "goal", label: "What do you want to work toward?", placeholder: "Make music, build a company, get healthier...", type: "textarea" },
+  { key: "whatIf", label: "What question still follows you?", placeholder: "What if I had started earlier?", type: "textarea" }
 ] as const;
 
 const sliders = [
-  { key: "discipline", label: "How steady are you right now?" },
-  { key: "risk", label: "How close do you stand to risk?" },
-  { key: "creativity", label: "How alive is your creative side?" },
-  { key: "social", label: "How much do people fuel you?" }
+  { key: "discipline", label: "How consistent are you right now?" },
+  { key: "risk", label: "How comfortable are you with risk?" },
+  { key: "creativity", label: "How creative do you feel lately?" },
+  { key: "social", label: "How much do people energize you?" }
 ] as const;
 
 export default function StartPage() {
@@ -59,16 +59,16 @@ export default function StartPage() {
           <Link href="/" className="game-button"><ArrowLeft size={16} /> Back</Link>
           <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.24em] text-slate-100">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-void"><Clapperboard size={18} /></span>
-            Casting Call
+            Story Setup
           </div>
         </nav>
 
         <section className="grid min-h-[calc(100vh-6rem)] items-center gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <p className="cinema-kicker">Before the first scene</p>
-            <h1 className="mt-4 text-5xl font-black leading-[0.92] text-white md:text-7xl">Before the first choice, we need the person.</h1>
+            <p className="cinema-kicker">Before we start</p>
+            <h1 className="mt-4 text-5xl font-black leading-[0.92] text-white md:text-7xl">Tell us a little about you.</h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
-              These answers become the emotional weather of the film. No scores on screen. No quiz results. Just a story that bends around what you choose.
+              Your answers shape the story. There are no grades or quiz results, just choices and a future that reacts to you.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export default function StartPage() {
             </div>
 
             <button onClick={begin} className="mt-7 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-base font-black text-void transition hover:scale-[1.01] hover:bg-cyan-100">
-              <Play size={18} fill="currentColor" /> Begin The Film
+              <Play size={18} fill="currentColor" /> Start the Story
             </button>
           </div>
         </section>

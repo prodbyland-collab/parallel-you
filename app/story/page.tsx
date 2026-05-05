@@ -80,7 +80,7 @@ export default function StoryPage() {
   if (!state || !scene) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#03040a] text-slate-200">
-        Loading your film...
+        Loading your story...
       </main>
     );
   }
@@ -99,7 +99,7 @@ export default function StoryPage() {
             <p className="mt-3 text-sm font-bold uppercase tracking-[0.2em] text-slate-400">{scene.year} / Age {state.profile.age + Math.max(0, scene.year - 2026)}</p>
           </div>
           <div className="hidden rounded-full border border-white/10 bg-black/35 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-slate-300 backdrop-blur-xl sm:block">
-            DIRECT YOUR LIFE
+            CHOOSE YOUR NEXT STEP
           </div>
         </header>
 
