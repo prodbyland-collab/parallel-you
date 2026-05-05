@@ -25,7 +25,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     narration: [
       "The room is quiet.",
       "Your phone is close. Your goal is closer.",
-      "You still don't move."
+      "You still don't move, which feels like a decision."
     ],
     choices: [
       { id: "open_project", text: "Open the thing you keep avoiding", effect: { discipline: 3, consistency: 4, creativity: 1 }, flags: ["stayed_consistent"] },
@@ -47,7 +47,7 @@ export const baseStoryScenes: SceneTemplate[] = [
       quote: "The ugly version was still real.",
       effect: { creativity: 3, consistency: 2 }
     },
-    narration: ["You start.", "It is not good.", "But it is there."],
+    narration: ["You start.", "It is not good.", "It has the courage to exist anyway."],
     choices: [
       { id: "fix_small_part", text: "Fix one small part", effect: { discipline: 3, consistency: 3, creativity: 2 }, flags: ["stayed_consistent"] },
       { id: "start_over_again", text: "Start over because this version annoys you", effect: { creativity: 2, consistency: -2 }, flags: ["started_over_again"] },
@@ -77,7 +77,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     narration: [
       "A message appears.",
       "You read the first line.",
-      "Then you wait, like waiting changes it."
+      "Then you wait, like waiting has ever paid rent."
     ],
     choices: [
       { id: "answer_message", text: "Answer before it becomes a whole thing", effect: { social: 4, confidence: 2 }, flags: ["asked_for_help"] },
@@ -101,7 +101,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     narration: [
       "It's late.",
       "No one is watching.",
-      "This is usually where you disappear."
+      "This is usually where you disappear and call it timing."
     ],
     choices: [
       { id: "push_late", text: "Stay for twenty more minutes", effect: { discipline: 4, consistency: 3, confidence: 1 }, flags: ["stayed_consistent"] },
@@ -116,7 +116,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     year: 2027,
     environment: "studio",
     mood: "focused",
-    narration: ["You did something small.", "Nobody noticed.", "You noticed."],
+    narration: ["You did something small.", "Nobody clapped.", "That was rude, but survivable."],
     choices: [
       { id: "save_proof", text: "Save it before you judge it", effect: { consistency: 4, confidence: 3 }, flags: ["stayed_consistent"] },
       { id: "hide_small_win", text: "Pretend it does not count", effect: { confidence: -3, creativity: 1 }, flags: ["avoided_work"] },
@@ -138,7 +138,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     },
     narration: [
       "Today doesn't care about your plan.",
-      "Everything feels heavier than it should."
+      "Even your shoes seem to have opinions."
     ],
     choices: [
       { id: "lower_the_bar", text: "Lower the bar and still do something", effect: { consistency: 5, discipline: 2, confidence: 2 }, flags: ["stayed_consistent"] },
@@ -160,7 +160,7 @@ export const baseStoryScenes: SceneTemplate[] = [
       quote: "Almost done was the hardest part.",
       effect: { discipline: 2, consistency: 2 }
     },
-    narration: ["It is almost done.", "That somehow makes it harder."],
+    narration: ["It is almost done.", "That somehow makes it harder.", "The last inch is showing off."],
     choices: [
       { id: "finish_badly", text: "Finish it badly on purpose", effect: { consistency: 5, risk: 3, confidence: 2 }, flags: ["almost_finished", "finished_badly"] },
       { id: "polish_forever", text: "Fix one more thing, then another", effect: { creativity: 2, consistency: -3 }, flags: ["almost_finished", "avoided_work"] },

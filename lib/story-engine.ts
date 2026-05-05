@@ -87,8 +87,8 @@ export function getAllScenes(state: StoryRunState) {
   return baseStoryScenes.map((template) => hydrateScene(template, state));
 }
 
-export function chooseSceneOption(state: StoryRunState, choice: StoryChoice): StoryRunState {
-  const scene = getScene(state);
+export function chooseSceneOption(state: StoryRunState, choice: StoryChoice, shownScene?: StoryScene): StoryRunState {
+  const scene = shownScene ?? getScene(state);
   const nextId = choice.nextScene ?? getNextSceneId(state);
   const choices: ChoiceRecord[] = [
     ...state.choices,

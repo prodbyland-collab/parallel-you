@@ -76,17 +76,21 @@ function pickEndingTitle(state: StoryRunState, identity: string) {
 function buildReflection(name: string, state: StoryRunState, identity: string, outcome: string, tradeoff: string, memoryCallback: string, finalObject: string) {
   const past = state.profile.doneSoFar || "You had already lived some of this before the story started.";
   const goal = state.profile.goals || state.profile.goal || "You wanted something to feel real.";
+  const lastChoice = state.choices[state.choices.length - 1]?.choiceText;
+  const firstChoice = state.choices[0]?.choiceText;
   const lines = [
-    `${name} started in a normal room.`,
+    `${name} started in a normal room, which is where trouble often likes to dress as furniture.`,
     past,
-    `The goal was simple when you said it: ${goal}`,
-    "Then real life did what it does. Messages waited. Sleep got weird. Small wins looked too small.",
+    `You said you wanted this: ${goal}`,
+    firstChoice ? `The first choice was small: ${firstChoice}. Small things have a way of acting innocent.` : "The first choice was small. It usually is.",
+    lastChoice ? `Near the end, you chose: ${lastChoice}. By then, it was not the same choice anymore.` : "",
+    "Real life did not clap. It mostly left tabs open and asked for rent.",
     memoryCallback,
     `By the end, you became ${identity}.`,
     `What happened: ${outcome}.`,
     `What it cost: ${tradeoff}.`,
     `The final scene keeps one thing in frame: the ${finalObject}.`
-  ];
+  ].filter(Boolean);
 
   if (state.flags.includes("ignored_message")) lines.splice(5, 0, "You remember the message you didn't answer.");
   if (countChoiceIds(state, ["do_nothing", "skip_today", "repeat_pattern", "scroll_late"]) >= 2) lines.splice(5, 0, "You did nothing more than once. It still shaped the room.");

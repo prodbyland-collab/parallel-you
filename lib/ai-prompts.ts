@@ -11,6 +11,10 @@ Tiny actions.
 Use contractions.
 Write like a camera noticed something private.
 Sound like a person, not an app.
+Keep a dry little smile in the voice.
+Plainspoken, wry, observant, and connected.
+Think old American storyteller energy: sharp, human, lightly funny.
+Do not parody or quote anyone.
 No motivational quotes.
 No fake deep sentences.
 No "believe in yourself".
@@ -28,6 +32,9 @@ No explaining emotions.
 Show through actions.
 Avoid abstract words when an object would work.
 Use the user's real goal naturally, not in every line.
+Every scene must clearly follow from the last choice.
+Bring back one small thing from earlier when possible.
+Make consequences feel like cause and effect, not random mood changes.
 If the user makes music, mention files, loops, export, notes, headphones, silence.
 If the user builds a business, mention messages, pages, clients, invoices, calls, tabs.
 If the user trains, mention shoes, shower, food, soreness, alarms, weather.
@@ -74,6 +81,9 @@ Story position:
 - act: ${memory.currentAct}
 - scene index: ${memory.sceneIndex}
 - purpose: ${memory.scenePurpose}
+- current scene title: ${memory.currentSceneTitle}
+- current scene narration: ${memory.currentSceneNarration}
+- narrative thread to continue: ${memory.narrativeThread}
 - hidden traits: ${JSON.stringify(memory.hiddenTraits)}
 - flags: ${memory.flags.join(", ") || "none"}
 - memory objects: ${memory.memoryObjects.map((item) => item.name).join(", ") || "none"}
@@ -119,6 +129,8 @@ Rules:
 - No repeated choice text.
 - Do not say "goal", "dream", "success", "destiny", or "journey" unless the user wrote those words.
 - Make this scene feel caused by the last choice.
+- Mention one concrete object or action from the narrative thread.
+- The scene should have a little wit, but never become a joke.
 `;
 }
 
@@ -129,6 +141,7 @@ Write a consequence for the choice: "${safe(choice.text)}"
 ${writingRules}
 
 Context:
+- narrative thread: ${memory.narrativeThread}
 - goal: ${safe(memory.profile.goals || memory.profile.goal)}
 - recent choices: ${memory.choiceHistory.map((item) => item.choiceText).join(" | ")}
 - rejected choices this scene: ${memory.rejectedChoices.join(" | ") || "none"}
@@ -153,6 +166,7 @@ Write the ending for this DIRECT YOUR LIFE run.
 ${writingRules}
 
 Base it on:
+- narrative thread: ${memory.narrativeThread}
 - profile: ${safe(memory.profile.doneSoFar)} / ${safe(memory.profile.goals || memory.profile.goal)}
 - choice history: ${memory.choiceHistory.map((choice) => choice.choiceText).join(" -> ")}
 - repeated patterns: ${memory.flags.join(", ") || "none"}

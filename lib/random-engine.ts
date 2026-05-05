@@ -181,17 +181,17 @@ function getSceneCallbackVariation(sceneId: string, state: StoryRunState) {
   const name = state.profile.name || "you";
   const map: Partial<Record<string, Partial<Record<string, string[]>>>> = {
     first_attempt: {
-      open_project: ["You opened it.", "That was the whole first win.", "Then the ugly part started."],
-      do_nothing: ["You sat there until the room felt louder.", "Then you started badly anyway."],
-      message_someone: ["The text sits there after you send it.", "You start before they reply."]
+      open_project: ["You opened it.", "The file did not thank you.", "Then the ugly part started."],
+      do_nothing: ["You sat there until the room got smug.", "Then you started badly anyway."],
+      message_someone: ["The text sits there after you send it.", "You start before the reply can save you."]
     },
     message: {
-      fix_small_part: ["One small thing is fixed.", "Now the phone lights up."],
+      fix_small_part: ["One small thing is fixed.", "The phone notices, because phones are nosy."],
       start_over_again: ["The new version is open.", "So is the old doubt.", "Then the phone lights up."],
-      close_try_tomorrow: ["Tomorrow arrives too fast.", "Your phone lights up before you do anything."]
+      close_try_tomorrow: ["Tomorrow arrives with poor manners.", "Your phone lights up before you do anything."]
     },
     small_win: {
-      push_late: ["You stayed a little longer.", "It was not heroic.", "It worked."],
+      push_late: ["You stayed a little longer.", "It was not heroic.", "It worked anyway."],
       sleep_instead: ["Sleep helped a little.", "The small win came later than planned."],
       scroll_late: ["You lost the night.", "Then stole back one small piece of the morning."]
     },

@@ -41,7 +41,7 @@ export async function callAIWriter(prompt: string) {
           temperature: 1,
           response_format: { type: "json_object" },
           messages: [
-            { role: "system", content: "You are a severe editor for grounded interactive fiction. Write like a real person noticed small details. Strict JSON only." },
+            { role: "system", content: "You are a severe editor for grounded interactive fiction. Write connected scenes with plainspoken wit, concrete details, and strict cause-and-effect. Strict JSON only." },
             { role: "user", content: prompt }
           ]
         })
@@ -224,12 +224,12 @@ function dedupeChoices(choices: AISceneDraft["choices"], recentChoices: string[]
 function localConsequence(choice: StoryChoice, memory: StoryMemory): AIConsequenceDraft {
   const random = seededRandom(memory.seed + choice.text.length + memory.choiceHistory.length * 17);
   const lines = choice.flags?.includes("ignored_message")
-    ? ["You put it away.", "For a second, the room feels easier.", "The message waits."]
+    ? ["You put it away.", "The room gets easier, which is rude of it.", "The message waits."]
     : choice.flags?.includes("sent_unfinished")
-      ? ["You send it.", "The screen looks too bright after.", "Now it exists outside the room."]
+      ? ["You send it.", "The screen looks too bright after.", "Now the rough thing has witnesses."]
       : choice.flags?.includes("did_nothing")
-        ? ["You do nothing.", "The day keeps going.", "That is the annoying part."]
-        : ["You choose it.", random() > 0.5 ? "Nothing dramatic happens." : "The room changes a little.", "You notice anyway."];
+        ? ["You do nothing.", "The day keeps going.", "That is its bad habit."]
+        : ["You choose it.", random() > 0.5 ? "Nothing dramatic happens, which feels suspicious." : "The room changes a little.", "You notice anyway."];
   return {
     consequenceLines: lines,
     updatedMood: choice.flags?.includes("did_nothing") ? "lost" : choice.flags?.includes("sent_unfinished") ? "tense" : "focused",

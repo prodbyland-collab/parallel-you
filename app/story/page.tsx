@@ -87,7 +87,7 @@ export default function StoryPage() {
       const memory = createStoryMemory(state, scene, allScenes, getEndingHistory(), choice);
       const consequence = await generateConsequenceWithAI(choice, memory);
       setConsequenceLines(consequence.consequenceLines);
-      const next = applyGeneratedConsequence(chooseSceneOption(state, choice), consequence.consequenceLines, consequence.delayedFlag);
+      const next = applyGeneratedConsequence(chooseSceneOption(state, choice, scene), consequence.consequenceLines, consequence.delayedFlag);
       if (isEnding(next)) {
         const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
         const history = getEndingHistory();

@@ -5,6 +5,9 @@ export type StoryMemory = {
   currentAct: 1 | 2 | 3;
   sceneIndex: number;
   scenePurpose: string;
+  currentSceneTitle: string;
+  currentSceneNarration: string;
+  narrativeThread: string;
   choiceHistory: StoryRunState["choices"];
   rejectedChoices: string[];
   recentNarration: string[];
@@ -36,6 +39,9 @@ export function createStoryMemory(
     currentAct: scene.act,
     sceneIndex,
     scenePurpose: getScenePurpose(scene.act, sceneIndex, allScenes.length),
+    currentSceneTitle: scene.title,
+    currentSceneNarration: scene.narration,
+    narrativeThread: buildNarrativeThread(state, scene, lastChoice),
     choiceHistory: state.choices.slice(-10),
     rejectedChoices: lastChoice ? scene.choices.filter((choice) => choice.id !== lastChoice.id).map((choice) => choice.text) : [],
     recentNarration: state.generatedTextHistory?.slice(-12) ?? [],
@@ -53,6 +59,21 @@ export function createStoryMemory(
     previousFinalLines: endings.map((ending) => ending.finalLine),
     seed: state.seed
   };
+}
+
+function buildNarrativeThread(state: StoryRunState, scene: StoryScene, lastChoice?: StoryChoice) {
+  const previous = state.choices[state.choices.length - 1];
+  const memory = state.memories[state.memories.length - 1];
+  const pieces = [
+    `Current scene: ${scene.title}.`,
+    `What is on screen now: ${scene.narration}`,
+    previous ? `Last real choice: ${previous.choiceText}.` : "This is the beginning.",
+    lastChoice ? `Choice being considered now: ${lastChoice.text}.` : "",
+    state.emotionalConsequences?.length ? `Recent consequence: ${state.emotionalConsequences[state.emotionalConsequences.length - 1]}.` : "",
+    memory ? `Object still following the story: ${memory.name}.` : "",
+    state.missedMoments?.length ? `Missed moment to possibly bring back: ${state.missedMoments[state.missedMoments.length - 1]}.` : ""
+  ];
+  return pieces.filter(Boolean).join(" ");
 }
 
 export function rememberGeneratedScene(state: StoryRunState, scene: StoryScene): StoryRunState {
