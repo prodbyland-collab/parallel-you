@@ -25,7 +25,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
-      <section className={`opening-black ${introDone ? "opacity-0" : "opacity-100"}`}>
+      <section className={`opening-black ${introDone ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <p key={lineIndex} className="opening-line">{introLines[lineIndex]}</p>
       </section>
 
