@@ -12,7 +12,7 @@ export function ChoicePanel({ choices, visible, onChoose }: { choices: StoryChoi
           className="story-choice group text-left"
           style={{ transitionDelay: `${index * 90}ms` }}
         >
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Choice {index + 1}</span>
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Option {index + 1}</span>
           <span className="mt-1 block text-lg font-black text-white">{choice.text}</span>
         </button>
       ))}

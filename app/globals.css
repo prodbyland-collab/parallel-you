@@ -276,25 +276,25 @@ button {
 .story-choice {
   display: block;
   cursor: pointer;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.045)),
-    rgba(0, 0, 0, 0.42);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.04)),
+    rgba(12, 14, 18, 0.62);
   padding: 1rem;
   color: white;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(18px);
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
 }
 
 .story-choice:hover {
-  transform: translateY(-2px);
-  border-color: rgba(34, 211, 238, 0.55);
+  transform: translateY(-1px);
+  border-color: rgba(226, 232, 240, 0.26);
   background:
-    linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(217, 70, 239, 0.12)),
-    rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 34px rgba(34, 211, 238, 0.18), 0 18px 42px rgba(0, 0, 0, 0.35);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06)),
+    rgba(12, 14, 18, 0.72);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
 }
 
 .story-choice:active {
@@ -315,15 +315,15 @@ button {
   padding: 0.8rem 1rem;
   font-size: 0.9rem;
   font-weight: 900;
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(18px);
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
 }
 
 .fun-button:not(:disabled):hover {
-  transform: translateY(-2px) rotate(-0.4deg);
-  border-color: rgba(250, 204, 21, 0.65);
-  box-shadow: 0 0 32px rgba(250, 204, 21, 0.22), 0 18px 42px rgba(0, 0, 0, 0.32);
+  transform: translateY(-1px);
+  border-color: rgba(250, 204, 21, 0.38);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
 }
 
 .memory-pickup {
@@ -332,9 +332,9 @@ button {
   gap: 0.8rem;
   align-items: center;
   border-radius: 1.15rem;
-  border: 1px solid rgba(34, 211, 238, 0.22);
+  border: 1px solid rgba(226, 232, 240, 0.14);
   background:
-    radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.18), transparent 8rem),
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.08), transparent 8rem),
     rgba(0, 0, 0, 0.48);
   padding: 0.8rem;
   backdrop-filter: blur(18px);
@@ -342,9 +342,9 @@ button {
 }
 
 .memory-pickup:not(:disabled):hover {
-  transform: translateY(-2px);
-  border-color: rgba(34, 211, 238, 0.62);
-  box-shadow: 0 0 28px rgba(34, 211, 238, 0.18);
+  transform: translateY(-1px);
+  border-color: rgba(226, 232, 240, 0.32);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
 }
 
 .mini-game {
@@ -354,7 +354,7 @@ button {
   border-radius: 1.15rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background:
-    linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(217, 70, 239, 0.1)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(148, 163, 184, 0.06)),
     rgba(0, 0, 0, 0.5);
   padding: 0.95rem;
   color: white;
@@ -373,7 +373,7 @@ button {
 }
 
 .movie-flash {
-  animation: movie-flash 1.8s ease-in-out infinite;
+  animation: movie-flash 3.4s ease-in-out infinite;
 }
 
 .share-card {
@@ -400,66 +400,63 @@ button {
 
 .story-backdrop::before {
   background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.12), transparent 0.5rem),
-    radial-gradient(circle at 44% 48%, rgba(255, 255, 255, 0.1), transparent 0.35rem),
-    radial-gradient(circle at 56% 50%, rgba(255, 255, 255, 0.08), transparent 0.45rem);
-  filter: blur(18px);
-  opacity: 0.9;
-  animation: backdrop-breathe 8s ease-in-out infinite;
+    linear-gradient(90deg, transparent 0 12%, rgba(255, 255, 255, 0.08) 12% 12.4%, transparent 12.4%),
+    linear-gradient(180deg, transparent 0 72%, rgba(255, 255, 255, 0.06) 72% 72.5%, transparent 72.5%);
+  opacity: 0.46;
+  animation: room-light-dim 9s ease-in-out infinite;
 }
 
 .story-backdrop::after {
   background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(34, 211, 238, 0.32) 0 1px, transparent 2px),
-    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 48%, transparent 56%);
+    radial-gradient(circle, rgba(255, 255, 255, 0.28) 0 1px, transparent 2px),
+    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.05) 48%, transparent 56%);
   background-position: 0 0, 70px 120px, center;
-  background-size: 190px 190px, 260px 260px, auto;
-  opacity: 0.36;
-  animation: particle-drift 32s linear infinite;
+  background-size: 210px 210px, auto;
+  opacity: 0.2;
+  animation: dust-drift 38s linear infinite;
 }
 
 .story-backdrop-bedroom {
   background:
-    radial-gradient(circle at 35% 42%, rgba(34, 211, 238, 0.22), transparent 18rem),
-    linear-gradient(120deg, rgba(15, 23, 42, 0.92), rgba(3, 4, 10, 0.96) 60%),
-    #03040a;
+    linear-gradient(90deg, rgba(10, 14, 20, 0.94), rgba(20, 22, 28, 0.82)),
+    radial-gradient(circle at 24% 36%, rgba(148, 163, 184, 0.14), transparent 16rem),
+    #08090d;
 }
 
 .story-backdrop-studio {
   background:
-    radial-gradient(circle at 55% 42%, rgba(217, 70, 239, 0.25), transparent 20rem),
-    radial-gradient(circle at 25% 70%, rgba(34, 211, 238, 0.14), transparent 16rem),
-    #05030a;
+    linear-gradient(105deg, rgba(14, 13, 18, 0.96), rgba(28, 24, 30, 0.86)),
+    radial-gradient(circle at 52% 42%, rgba(244, 114, 182, 0.09), transparent 20rem),
+    #07070a;
 }
 
 .story-backdrop-city {
   background:
-    linear-gradient(180deg, rgba(251, 113, 133, 0.1), transparent 45%),
-    repeating-linear-gradient(90deg, rgba(251, 113, 133, 0.18) 0 2px, transparent 2px 76px),
-    radial-gradient(circle at 65% 45%, rgba(251, 113, 133, 0.24), transparent 22rem),
-    #03040a;
+    linear-gradient(180deg, rgba(30, 41, 59, 0.54), transparent 48%),
+    repeating-linear-gradient(90deg, rgba(226, 232, 240, 0.08) 0 2px, transparent 2px 78px),
+    radial-gradient(circle at 68% 42%, rgba(251, 146, 60, 0.14), transparent 22rem),
+    #07080c;
 }
 
 .story-backdrop-sunrise {
   background:
-    radial-gradient(circle at 62% 42%, rgba(250, 204, 21, 0.34), transparent 18rem),
-    linear-gradient(180deg, rgba(251, 146, 60, 0.18), rgba(3, 4, 10, 0.92) 58%),
-    #03040a;
+    radial-gradient(circle at 62% 42%, rgba(250, 204, 21, 0.22), transparent 18rem),
+    linear-gradient(180deg, rgba(251, 146, 60, 0.13), rgba(9, 10, 14, 0.92) 62%),
+    #08090d;
 }
 
 .story-backdrop-void {
   background:
-    radial-gradient(circle at 50% 48%, rgba(139, 92, 246, 0.22), transparent 16rem),
-    radial-gradient(circle at 50% 48%, transparent 0 8rem, rgba(139, 92, 246, 0.1) 8.2rem, transparent 8.6rem),
-    #020209;
+    linear-gradient(180deg, rgba(15, 23, 42, 0.42), transparent 48%),
+    radial-gradient(circle at 50% 48%, rgba(148, 163, 184, 0.08), transparent 16rem),
+    #050507;
 }
 
 .story-backdrop-spotlight {
   background:
-    conic-gradient(from 180deg at 50% 0%, transparent 0 34%, rgba(255, 255, 255, 0.16) 44%, transparent 58%),
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 19rem),
-    #03040a;
+    conic-gradient(from 180deg at 50% 0%, transparent 0 36%, rgba(255, 255, 255, 0.12) 45%, transparent 58%),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.14), transparent 19rem),
+    #08090d;
 }
 
 .story-silhouette {
@@ -497,6 +494,223 @@ button {
   right: 11%;
   transform: scale(0.78);
   opacity: 0.22;
+}
+
+.ambient-life,
+.ambient-life span {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ambient-life {
+  inset: 0;
+  z-index: 2;
+  opacity: 0.95;
+}
+
+.ambient-window {
+  left: 8%;
+  top: 18%;
+  height: 28vh;
+  width: min(24vw, 18rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.12), rgba(15, 23, 42, 0.08));
+  box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.03);
+}
+
+.ambient-curtain {
+  left: 7.5%;
+  top: 16%;
+  height: 32vh;
+  width: 3rem;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.08), rgba(226, 232, 240, 0.015));
+  filter: blur(0.4px);
+  transform-origin: top;
+  animation: curtain-move 8s ease-in-out infinite;
+}
+
+.ambient-phone {
+  right: 21%;
+  bottom: 22%;
+  height: 3.1rem;
+  width: 1.65rem;
+  border-radius: 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.86);
+  box-shadow: 0 0 0 rgba(147, 197, 253, 0);
+  animation: phone-glow 7s ease-in-out infinite;
+}
+
+.ambient-message {
+  right: 18%;
+  bottom: 31%;
+  height: 1.35rem;
+  width: 6.8rem;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.14);
+  opacity: 0;
+  animation: message-appear 9s ease-in-out infinite;
+}
+
+.ambient-clock {
+  right: 12%;
+  top: 22%;
+  height: 3.2rem;
+  width: 3.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.ambient-clock::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 1.1rem;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.55);
+  transform-origin: top;
+  animation: clock-tick 1.8s steps(2, end) infinite;
+}
+
+.ambient-laptop {
+  left: 42%;
+  bottom: 18%;
+  height: 3.8rem;
+  width: min(22vw, 13rem);
+  border-radius: 0.35rem 0.35rem 0.1rem 0.1rem;
+  background: linear-gradient(180deg, rgba(191, 219, 254, 0.14), rgba(15, 23, 42, 0.18));
+  box-shadow: 0 0 42px rgba(191, 219, 254, 0.1);
+  animation: laptop-glow 6s ease-in-out infinite;
+}
+
+.ambient-steam {
+  left: 35%;
+  bottom: 28%;
+  height: 4rem;
+  width: 2rem;
+  border-radius: 999px;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  filter: blur(1px);
+  opacity: 0;
+  animation: steam-rise 5s ease-in-out infinite;
+}
+
+.ambient-notebook {
+  left: 30%;
+  bottom: 17%;
+  height: 2.7rem;
+  width: 4.5rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, rgba(241, 245, 249, 0.12) 0 48%, rgba(241, 245, 249, 0.06) 48% 52%, rgba(241, 245, 249, 0.1) 52%);
+  transform: rotate(-4deg);
+  animation: notebook-page 7s ease-in-out infinite;
+}
+
+.ambient-rain {
+  left: 9%;
+  top: 19%;
+  height: 27vh;
+  width: min(23vw, 17rem);
+  background-image: linear-gradient(105deg, transparent 0 48%, rgba(226, 232, 240, 0.12) 49%, transparent 51%);
+  background-size: 18px 32px;
+  opacity: 0;
+  animation: rain-window 5s linear infinite;
+}
+
+.ambient-streetlight {
+  right: 18%;
+  top: 18%;
+  height: 16vh;
+  width: 0.26rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ambient-streetlight::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -2.9rem;
+  height: 5rem;
+  width: 6rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.18), transparent 70%);
+  animation: street-flicker 6s ease-in-out infinite;
+}
+
+.ambient-calendar {
+  right: 14%;
+  bottom: 34%;
+  height: 3.4rem;
+  width: 3rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(180deg, rgba(248, 113, 113, 0.16) 0 24%, rgba(255, 255, 255, 0.1) 24%);
+  animation: calendar-flip 10s ease-in-out infinite;
+}
+
+.ambient-waveform {
+  left: 22%;
+  bottom: 29%;
+  height: 2.4rem;
+  width: 8rem;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 3px, transparent 3px 10px);
+  mask-image: linear-gradient(180deg, transparent 0 25%, black 25% 75%, transparent 75%);
+  animation: waveform-soft 1.8s ease-in-out infinite;
+}
+
+.ambient-dust {
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0 1px, transparent 1.5px);
+  background-size: 90px 90px;
+  opacity: 0.14;
+  animation: dust-drift 34s linear infinite;
+}
+
+.ambient-bedroom .ambient-streetlight,
+.ambient-bedroom .ambient-waveform {
+  opacity: 0;
+}
+
+.ambient-studio .ambient-window,
+.ambient-studio .ambient-curtain,
+.ambient-studio .ambient-clock,
+.ambient-studio .ambient-rain {
+  opacity: 0;
+}
+
+.ambient-studio .ambient-waveform {
+  opacity: 0.65;
+}
+
+.ambient-city .ambient-laptop,
+.ambient-city .ambient-notebook,
+.ambient-city .ambient-steam,
+.ambient-city .ambient-clock {
+  opacity: 0;
+}
+
+.ambient-city .ambient-rain {
+  opacity: 0.28;
+}
+
+.ambient-sunrise .ambient-phone,
+.ambient-sunrise .ambient-message,
+.ambient-sunrise .ambient-waveform {
+  opacity: 0;
+}
+
+.ambient-void .ambient-window,
+.ambient-void .ambient-curtain,
+.ambient-void .ambient-streetlight,
+.ambient-void .ambient-waveform {
+  opacity: 0;
+}
+
+.ambient-spotlight .ambient-rain,
+.ambient-spotlight .ambient-curtain,
+.ambient-spotlight .ambient-clock {
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
@@ -651,6 +865,165 @@ button {
   50% {
     transform: scale(1.08);
     opacity: 1;
+  }
+}
+
+@keyframes curtain-move {
+  0%,
+  100% {
+    transform: skewX(0deg) translateX(0);
+  }
+
+  50% {
+    transform: skewX(-1.6deg) translateX(0.35rem);
+  }
+}
+
+@keyframes phone-glow {
+  0%,
+  54%,
+  100% {
+    box-shadow: 0 0 0 rgba(147, 197, 253, 0);
+    background: rgba(15, 23, 42, 0.86);
+  }
+
+  62%,
+  74% {
+    box-shadow: 0 0 32px rgba(147, 197, 253, 0.22);
+    background: rgba(147, 197, 253, 0.16);
+  }
+}
+
+@keyframes message-appear {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+
+  66%,
+  78% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes clock-tick {
+  to {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes laptop-glow {
+  0%,
+  100% {
+    opacity: 0.62;
+    box-shadow: 0 0 28px rgba(191, 219, 254, 0.08);
+  }
+
+  50% {
+    opacity: 0.86;
+    box-shadow: 0 0 48px rgba(191, 219, 254, 0.14);
+  }
+}
+
+@keyframes steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0.7rem) translateX(0);
+  }
+
+  35% {
+    opacity: 0.52;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-2.6rem) translateX(0.7rem);
+  }
+}
+
+@keyframes notebook-page {
+  0%,
+  70%,
+  100% {
+    transform: rotate(-4deg) skewX(0);
+  }
+
+  78% {
+    transform: rotate(-4deg) skewX(-8deg);
+  }
+}
+
+@keyframes rain-window {
+  to {
+    background-position: 0 48px;
+  }
+}
+
+@keyframes street-flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  45% {
+    opacity: 0.36;
+  }
+
+  48% {
+    opacity: 0.72;
+  }
+
+  52% {
+    opacity: 0.42;
+  }
+}
+
+@keyframes calendar-flip {
+  0%,
+  84%,
+  100% {
+    transform: rotateX(0deg);
+  }
+
+  90% {
+    transform: rotateX(18deg);
+  }
+}
+
+@keyframes waveform-soft {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+    opacity: 0.28;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: 0.46;
+  }
+}
+
+@keyframes room-light-dim {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes dust-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(38px, -28px, 0);
   }
 }
 

@@ -1,17 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ElementType } from "react";
-import { Clock, Coins, FileText, Music, NotebookPen, Orbit, Play, Send, Sparkles, UserRound, Zap } from "lucide-react";
+import { AlarmClock, Bus, Coffee, FileText, NotebookPen, Orbit, Play, ReceiptText, Send, Shirt, Sparkles, UserRound, Zap } from "lucide-react";
 import type { ChaosEvent, MemoryObject, MiniGameType, RelationshipMoment } from "@/lib/story-types";
 
 const memoryIcons: Record<MemoryObject["id"], ElementType> = {
-  "old-notebook": NotebookPen,
+  notebook: NotebookPen,
   "voice-note": Play,
-  photo: FileText,
-  "broken-clock": Clock,
-  "lucky-coin": Coins,
-  "unfinished-song": Music,
-  "message-draft": Send
+  "old-photo": FileText,
+  "alarm-clock": AlarmClock,
+  receipt: ReceiptText,
+  hoodie: Shirt,
+  "bus-ticket": Bus,
+  "project-file": FileText,
+  "message-draft": Send,
+  "coffee-cup": Coffee
 };
 
 export function FunLayer({
@@ -187,7 +190,7 @@ function MiniGame({ type, sceneId, disabled, onComplete, hasMemory }: { type: Mi
   };
 
   if (done) {
-    return <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-100">Nice. The Life Core got stronger.</div>;
+    return <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-100">Nice. The scene feels a little steadier.</div>;
   }
 
   if (type === "hold") {
@@ -211,7 +214,7 @@ function MiniGame({ type, sceneId, disabled, onComplete, hasMemory }: { type: Mi
   if (type === "drag-memory") {
     return (
       <button onClick={finish} disabled={disabled || !hasMemory} className="mini-game text-left disabled:opacity-55">
-        <b>Add a memory to the Life Core</b>
+        <b>Add a memory to the scene</b>
         <span className="mt-1 flex items-center gap-2 text-sm text-slate-300"><Orbit size={14} /> {hasMemory ? "Tap to add one of your memories" : "Collect a memory first"}</span>
       </button>
     );

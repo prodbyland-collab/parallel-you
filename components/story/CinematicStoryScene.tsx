@@ -21,12 +21,12 @@ declare global {
 const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js";
 
 const sceneColors: Record<StoryScene["environment"], string> = {
-  bedroom: "#22d3ee",
-  studio: "#d946ef",
-  city: "#fb7185",
-  sunrise: "#facc15",
-  void: "#8b5cf6",
-  spotlight: "#f8fafc"
+  bedroom: "#93a4b8",
+  studio: "#c9a6b8",
+  city: "#d6a06d",
+  sunrise: "#e8c979",
+  void: "#8b93a6",
+  spotlight: "#e5e7eb"
 };
 
 const sceneBackdropClasses: Record<StoryScene["environment"], string> = {
@@ -70,10 +70,32 @@ export function CinematicStoryScene({ scene, traits }: { scene: StoryScene; trai
       <div className={sceneBackdropClasses[scene.environment]}>
         <span className="story-silhouette story-silhouette-left" />
         <span className="story-silhouette story-silhouette-right" />
+        <AmbientLifeDetails scene={scene} />
       </div>
       <div ref={mountRef} className="three-cinema-scene absolute inset-0 z-[1]" />
       <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_50%_42%,transparent,rgba(0,0,0,0.58)_76%)]" />
       {error && <div className="absolute inset-6 grid place-items-center rounded-3xl border border-rose-300/30 bg-rose-950/70 p-6 text-center text-rose-100">{error}</div>}
+    </div>
+  );
+}
+
+function AmbientLifeDetails({ scene }: { scene: StoryScene }) {
+  const sceneClass = `ambient-life ambient-${scene.environment} ambient-${scene.id}`;
+  return (
+    <div className={sceneClass} aria-hidden="true">
+      <span className="ambient-window" />
+      <span className="ambient-curtain" />
+      <span className="ambient-phone" />
+      <span className="ambient-message" />
+      <span className="ambient-clock" />
+      <span className="ambient-laptop" />
+      <span className="ambient-steam" />
+      <span className="ambient-notebook" />
+      <span className="ambient-rain" />
+      <span className="ambient-streetlight" />
+      <span className="ambient-calendar" />
+      <span className="ambient-waveform" />
+      <span className="ambient-dust" />
     </div>
   );
 }

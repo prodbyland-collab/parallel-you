@@ -1,6 +1,6 @@
 export type StoryEnvironment = "bedroom" | "studio" | "city" | "sunrise" | "void" | "spotlight";
 export type StoryMood = "hopeful" | "tired" | "tense" | "focused" | "lost" | "breakthrough";
-export type MemoryObjectId = "old-notebook" | "voice-note" | "photo" | "broken-clock" | "lucky-coin" | "unfinished-song" | "message-draft";
+export type MemoryObjectId = "notebook" | "voice-note" | "old-photo" | "alarm-clock" | "receipt" | "hoodie" | "bus-ticket" | "project-file" | "message-draft" | "coffee-cup";
 export type MiniGameType = "hold" | "timed-choice" | "drag-memory" | "tap-particles";
 
 export type PlayerProfile = {

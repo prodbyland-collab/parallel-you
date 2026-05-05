@@ -57,8 +57,8 @@ export function applyTraitEffect(traits: HiddenTraits, effect: Partial<HiddenTra
 export const wildCards: WildCardEvent[] = [
   {
     id: "message-after-midnight",
-    title: "The Late-Night Message",
-    narration: "A message arrives from someone who saw your work when you thought nobody noticed.",
+    title: "Old Friend Texts",
+    narration: "An old friend texts after midnight: I saw what you posted. Keep going.",
     environment: "city",
     mood: "hopeful",
     effect: { social: 8, creativity: 5, luck: 6 },
@@ -67,8 +67,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "quiet-burnout",
-    title: "Quiet Burnout",
-    narration: "Your body finally says what your schedule ignored. The lights stay on, but you move slower.",
+    title: "Bad Sleep",
+    narration: "You sleep badly, miss the alarm, and spend the day moving slower than usual.",
     environment: "bedroom",
     mood: "tired",
     effect: { discipline: -5, consistency: -6, creativity: -4 },
@@ -77,8 +77,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "public-miss",
-    title: "The Public Mistake",
-    narration: "You try something before it is ready. It hurts, but it also proves you can survive being seen.",
+    title: "Nobody Notices",
+    narration: "You post something and almost nobody reacts. It stings, but you still did the work.",
     environment: "city",
     mood: "tense",
     effect: { risk: 8, creativity: 4, social: -4 },
@@ -87,8 +87,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "strange-spark",
-    title: "The Strange Idea",
-    narration: "At a bad time, in a bad mood, a good idea finally appears.",
+    title: "Small Idea on a Walk",
+    narration: "A useful idea shows up during a normal walk, so you write it down before it disappears.",
     environment: "studio",
     mood: "breakthrough",
     effect: { creativity: 11, luck: 4 },
@@ -97,8 +97,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "perfect-room",
-    title: "The Perfect Room",
-    narration: "For one night, timing, courage, and attention all show up together.",
+    title: "The Right Person Sees It",
+    narration: "One person with the right connection sees your work and sends a short, serious message.",
     environment: "spotlight",
     mood: "breakthrough",
     effect: { luck: 14, social: 10, risk: 8 },
@@ -107,8 +107,8 @@ export const wildCards: WildCardEvent[] = [
   },
   {
     id: "total-reset",
-    title: "The Total Reset",
-    narration: "Something ends. It hurts, but it also feels like a door finally closing.",
+    title: "Unexpected Expense",
+    narration: "A sudden expense changes the week. You have to slow down, adjust, and choose what still matters.",
     environment: "void",
     mood: "lost",
     effect: { consistency: 8, discipline: 4, risk: -5 },

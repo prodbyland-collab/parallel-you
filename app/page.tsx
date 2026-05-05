@@ -43,7 +43,7 @@ export default function Home() {
               <div className="absolute bottom-6 left-6 right-6">
                 <p className="cinema-kicker">Story preview</p>
                 <h2 className="mt-3 text-4xl font-black leading-none text-white">ACT 1: A quiet night, one small choice</h2>
-                <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">Start in your room, follow the glowing Life Core, and see what changes when you choose.</p>
+                <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">Start in your room, notice the small details, and see what changes when you choose.</p>
               </div>
               <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-200/25 bg-cyan-300/10 blur-[1px] shadow-[0_0_80px_rgba(34,211,238,0.35)]" />
               <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_60px_rgba(255,255,255,0.8)]" />

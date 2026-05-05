@@ -16,10 +16,10 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "bedroom",
     mood: "hopeful",
     memoryObject: {
-      id: "old-notebook",
-      name: "Old notebook",
-      description: "Old plans, crossed-out ideas, and one page that still feels hopeful.",
-      quote: "I was not too late. I was getting ready.",
+      id: "notebook",
+      name: "Notebook",
+      description: "A notebook with old plans, crossed-out ideas, and one page that still feels possible.",
+      quote: "I started with one page.",
       effect: { creativity: 3, consistency: 2 }
     },
     miniGame: "hold",
@@ -28,9 +28,9 @@ const sceneTemplates: SceneTemplate[] = [
       "The question {whatIf} still hurts a little, but tonight it turns into something useful: a reason to finally start."
     ],
     choices: [
-      { id: "one-hour", text: "Make one small first move", effect: { discipline: 5, consistency: 6, creativity: 2 }, flags: ["stayed_consistent"] },
-      { id: "rest", text: "Close the laptop and breathe", effect: { consistency: -2, discipline: -1 }, flags: ["avoided_work"] },
-      { id: "message", text: "Text the person who gets it", effect: { social: 6, risk: 2 }, flags: ["asked_for_help"] }
+      { id: "one-hour", text: "Set a 20-minute timer and actually start", effect: { discipline: 5, consistency: 6, creativity: 2 }, flags: ["stayed_consistent"] },
+      { id: "rest", text: "Tell yourself you are too tired and go to sleep", effect: { consistency: -2, discipline: -1 }, flags: ["avoided_work"] },
+      { id: "message", text: "Send an awkward honest text: I need a push", effect: { social: 6, risk: 2 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -50,9 +50,9 @@ const sceneTemplates: SceneTemplate[] = [
       "That makes the first real test simple: keep one small promise, or let the day pull everything back to normal."
     ],
     choices: [
-      { id: "routine", text: "Protect one tiny habit", effect: { discipline: 6, consistency: 7 }, flags: ["stayed_consistent"] },
-      { id: "big-plan", text: "Make a big comeback plan", effect: { risk: 3, discipline: 1, consistency: -3 } },
-      { id: "scroll", text: "Let the phone win", effect: { consistency: -6, creativity: -2 }, flags: ["avoided_work", "regret_repeated"] }
+      { id: "routine", text: "Do the tiny habit before checking your phone", effect: { discipline: 6, consistency: 7 }, flags: ["stayed_consistent"] },
+      { id: "big-plan", text: "Make a perfect plan instead of doing the work", effect: { risk: 3, discipline: 1, consistency: -3 } },
+      { id: "scroll", text: "Open your phone for five minutes and lose an hour", effect: { consistency: -6, creativity: -2 }, flags: ["avoided_work", "regret_repeated"] }
     ]
   },
   {
@@ -65,8 +65,8 @@ const sceneTemplates: SceneTemplate[] = [
     memoryObject: {
       id: "voice-note",
       name: "Voice note",
-      description: "A rough recording where the idea is stronger than the confidence.",
-      quote: "Send it before the brave version leaves.",
+      description: "A shaky recording saved at 1:13 AM, before confidence had time to leave.",
+      quote: "It sounded rough, but it was mine.",
       effect: { creativity: 4, risk: 2 }
     },
     miniGame: "tap-particles",
@@ -75,9 +75,9 @@ const sceneTemplates: SceneTemplate[] = [
       "Now the story asks for a harder step: keep it hidden where it feels safe, or let one person see it."
     ],
     choices: [
-      { id: "share", text: "Post it before you overthink", effect: { creativity: 6, risk: 5, social: 2 }, flags: ["took_big_risk"] },
-      { id: "keep-private", text: "Save it just for yourself", effect: { creativity: 3, risk: -3, social: -2 }, flags: ["isolated_self"] },
-      { id: "ask-feedback", text: "Send it to someone honest", effect: { social: 7, creativity: 3, risk: 2 }, flags: ["asked_for_help"] }
+      { id: "share", text: "Post the rough version before you delete it", effect: { creativity: 6, risk: 5, social: 2 }, flags: ["took_big_risk"] },
+      { id: "keep-private", text: "Save it in drafts and promise to fix it later", effect: { creativity: 3, risk: -3, social: -2 }, flags: ["isolated_self"] },
+      { id: "ask-feedback", text: "Send it to one person who will tell the truth", effect: { social: 7, creativity: 3, risk: 2 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -92,9 +92,9 @@ const sceneTemplates: SceneTemplate[] = [
       "This is where the story can quietly shrink: not because {name} fails loudly, but because the same easy excuses keep winning."
     ],
     choices: [
-      { id: "break-loop", text: "Break the pattern tonight", effect: { discipline: 7, consistency: 8 }, flags: ["returned_after_failure", "stayed_consistent"] },
-      { id: "stay-loop", text: "Let this week disappear too", effect: { consistency: -8, discipline: -5 }, flags: ["avoided_work", "regret_repeated"] },
-      { id: "small-help", text: "Ask for a gentle push", effect: { social: 6, consistency: 4 }, flags: ["asked_for_help"] }
+      { id: "break-loop", text: "Do the smallest useful task before bed", effect: { discipline: 7, consistency: 8 }, flags: ["returned_after_failure", "stayed_consistent"] },
+      { id: "stay-loop", text: "Say tomorrow again and avoid thinking about it", effect: { consistency: -8, discipline: -5 }, flags: ["avoided_work", "regret_repeated"] },
+      { id: "small-help", text: "Ask a friend to check on you tomorrow", effect: { social: 6, consistency: 4 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -115,9 +115,9 @@ const sceneTemplates: SceneTemplate[] = [
       "{name} has to decide whether to stay comfortable or try while still feeling unprepared."
     ],
     choices: [
-      { id: "say-yes", text: "Say yes even though you are nervous", effect: { risk: 8, social: 4, consistency: -2 }, flags: ["took_big_risk"] },
-      { id: "wait", text: "Ask for more time", effect: { discipline: 1, risk: -6 }, flags: ["ignored_opportunity"] },
-      { id: "bring-friend", text: "Bring someone into the decision", effect: { social: 8, risk: 2 }, flags: ["asked_for_help"] }
+      { id: "say-yes", text: "Reply yes before you talk yourself out of it", effect: { risk: 8, social: 4, consistency: -2 }, flags: ["took_big_risk"] },
+      { id: "wait", text: "Ask for more time because you feel unready", effect: { discipline: 1, risk: -6 }, flags: ["ignored_opportunity"] },
+      { id: "bring-friend", text: "Screenshot the message and ask a friend what to do", effect: { social: 8, risk: 2 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -132,9 +132,9 @@ const sceneTemplates: SceneTemplate[] = [
       "{name} can see the pattern clearly: the future is not built by one big decision, but by what keeps getting repeated."
     ],
     choices: [
-      { id: "return", text: "Come back quietly", effect: { consistency: 9, discipline: 5 }, flags: ["returned_after_failure"] },
-      { id: "quit", text: "Tell yourself this was the old you", effect: { consistency: -10, creativity: -5 }, flags: ["quit_once", "regret_repeated"] },
-      { id: "risk-reset", text: "Throw away the old plan", effect: { risk: 7, discipline: 2, social: -2 }, flags: ["took_big_risk"] }
+      { id: "return", text: "Admit you fell off and restart smaller", effect: { consistency: 9, discipline: 5 }, flags: ["returned_after_failure"] },
+      { id: "quit", text: "Tell yourself maybe this is not for you", effect: { consistency: -10, creativity: -5 }, flags: ["quit_once", "regret_repeated"] },
+      { id: "risk-reset", text: "Delete the old plan and try a new approach", effect: { risk: 7, discipline: 2, social: -2 }, flags: ["took_big_risk"] }
     ]
   },
   {
@@ -149,9 +149,9 @@ const sceneTemplates: SceneTemplate[] = [
       "It is not fame. It is just the first sign that the work can travel further than the room where it began."
     ],
     choices: [
-      { id: "own-it", text: "Stay visible", effect: { risk: 5, creativity: 6, social: 3 }, flags: ["took_big_risk"] },
-      { id: "hide", text: "Go quiet before more people notice", effect: { social: -8, consistency: -5 }, flags: ["isolated_self"] },
-      { id: "learn", text: "Use the reaction to improve", effect: { creativity: 6, discipline: 4 }, flags: ["stayed_consistent"] }
+      { id: "own-it", text: "Keep showing up even though people can judge it", effect: { risk: 5, creativity: 6, social: 3 }, flags: ["took_big_risk"] },
+      { id: "hide", text: "Go quiet because attention feels uncomfortable", effect: { social: -8, consistency: -5 }, flags: ["isolated_self"] },
+      { id: "learn", text: "Read the feedback and improve one specific thing", effect: { creativity: 6, discipline: 4 }, flags: ["stayed_consistent"] }
     ]
   },
   {
@@ -164,8 +164,8 @@ const sceneTemplates: SceneTemplate[] = [
     memoryObject: {
       id: "message-draft",
       name: "Message draft",
-      description: "Four saved sentences that say more than you expected.",
-      quote: "Say it before the silence grows.",
+      description: "A half-written reply that says what you were avoiding.",
+      quote: "The message was small, but it changed the night.",
       effect: { social: 4, discipline: 1 }
     },
     relationshipMoment: {
@@ -178,9 +178,9 @@ const sceneTemplates: SceneTemplate[] = [
       "Someone misses the version of {name} who had more time, and {name} has to decide what success is allowed to cost."
     ],
     choices: [
-      { id: "make-time", text: "Show up for them tonight", effect: { social: 8, consistency: -2 }, flags: ["asked_for_help"] },
-      { id: "lock-in", text: "Choose the work and accept the quiet", effect: { discipline: 6, consistency: 6, social: -7 }, flags: ["isolated_self"] },
-      { id: "explain", text: "Explain what is going on", effect: { social: 5, discipline: 2 }, flags: ["asked_for_help"] }
+      { id: "make-time", text: "Put the work down and see them tonight", effect: { social: 8, consistency: -2 }, flags: ["asked_for_help"] },
+      { id: "lock-in", text: "Ignore the message and keep working", effect: { discipline: 6, consistency: 6, social: -7 }, flags: ["isolated_self"] },
+      { id: "explain", text: "Reply honestly instead of pretending you are fine", effect: { social: 5, discipline: 2 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -200,9 +200,9 @@ const sceneTemplates: SceneTemplate[] = [
       "This does not mean the dream is over. It means {name} has to learn the difference between discipline and punishment."
     ],
     choices: [
-      { id: "repair", text: "Make the goal smaller for one week", effect: { discipline: 3, consistency: 5, social: 2 }, flags: ["returned_after_failure"] },
-      { id: "force", text: "Push through and pay later", effect: { discipline: 5, consistency: 2, social: -4 }, flags: ["burned_out"] },
-      { id: "vanish", text: "Disappear without explaining", effect: { consistency: -8, social: -8, creativity: -3 }, flags: ["isolated_self", "quit_once"] }
+      { id: "repair", text: "Cancel one thing and actually recover", effect: { discipline: 3, consistency: 5, social: 2 }, flags: ["returned_after_failure"] },
+      { id: "force", text: "Drink coffee and push through anyway", effect: { discipline: 5, consistency: 2, social: -4 }, flags: ["burned_out"] },
+      { id: "vanish", text: "Stop replying to people and disappear", effect: { consistency: -8, social: -8, creativity: -3 }, flags: ["isolated_self", "quit_once"] }
     ]
   },
   {
@@ -213,10 +213,10 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "spotlight",
     mood: "hopeful",
     memoryObject: {
-      id: "lucky-coin",
-      name: "Lucky coin",
-      description: "Found in a jacket pocket on a day you almost stayed home.",
-      quote: "Luck shows up when you move.",
+      id: "receipt",
+      name: "Receipt",
+      description: "A receipt from the night you almost said no, folded into your pocket.",
+      quote: "The night looked ordinary until it wasn't.",
       effect: { luck: 7, risk: 2 }
     },
     movieMoment: {
@@ -230,9 +230,9 @@ const sceneTemplates: SceneTemplate[] = [
       "It feels like luck, but it is also connected to every small choice before this. Now the question is whether {name} will walk through."
     ],
     choices: [
-      { id: "step-through", text: "Step in before fear talks you out of it", effect: { risk: 7, luck: 4, social: 4 }, flags: ["lucky_event_seen", "took_big_risk"] },
-      { id: "prepare-first", text: "Answer carefully, not fearfully", effect: { discipline: 5, consistency: 4, risk: -2 }, flags: ["stayed_consistent"] },
-      { id: "miss-it", text: "Let it close and pretend you are fine", effect: { risk: -7, luck: -4 }, flags: ["ignored_opportunity", "regret_repeated"] }
+      { id: "step-through", text: "Say yes, then figure it out step by step", effect: { risk: 7, luck: 4, social: 4 }, flags: ["lucky_event_seen", "took_big_risk"] },
+      { id: "prepare-first", text: "Ask clear questions and prepare properly", effect: { discipline: 5, consistency: 4, risk: -2 }, flags: ["stayed_consistent"] },
+      { id: "miss-it", text: "Leave the message unanswered until it is too late", effect: { risk: -7, luck: -4 }, flags: ["ignored_opportunity", "regret_repeated"] }
     ]
   },
   {
@@ -252,9 +252,9 @@ const sceneTemplates: SceneTemplate[] = [
       "That makes the moment painful, but also useful. The story is asking whether {name} will stop, blame the world, or learn."
     ],
     choices: [
-      { id: "come-back", text: "Come back without making a speech", effect: { consistency: 8, discipline: 4 }, flags: ["returned_after_failure"] },
-      { id: "blame-world", text: "Blame everything around you", effect: { consistency: -6, luck: -3 }, flags: ["regret_repeated"] },
-      { id: "ask-mentor", text: "Ask someone with more experience", effect: { social: 8, creativity: 3 }, flags: ["asked_for_help"] }
+      { id: "come-back", text: "Fix the obvious mistake and try again", effect: { consistency: 8, discipline: 4 }, flags: ["returned_after_failure"] },
+      { id: "blame-world", text: "Say it was unfair and avoid looking at your part", effect: { consistency: -6, luck: -3 }, flags: ["regret_repeated"] },
+      { id: "ask-mentor", text: "Ask someone better how they would handle it", effect: { social: 8, creativity: 3 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -265,10 +265,10 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "studio",
     mood: "breakthrough",
     memoryObject: {
-      id: "unfinished-song",
-      name: "Unfinished song",
-      description: "A piece of an idea that is too honest to delete.",
-      quote: "The unfinished thing was still alive.",
+      id: "project-file",
+      name: "Unfinished project file",
+      description: "A messy file with a bad name, many versions, and one part that finally works.",
+      quote: "The unfinished thing was still worth opening.",
       effect: { creativity: 6, consistency: 2 }
     },
     movieMoment: {
@@ -282,9 +282,9 @@ const sceneTemplates: SceneTemplate[] = [
       "For the first time, {name} can connect the whole path: the small start, the scary share, the setback, and this proof."
     ],
     choices: [
-      { id: "build-system", text: "Turn the proof into a routine", effect: { consistency: 8, discipline: 6 }, flags: ["breakthrough_seen", "stayed_consistent"] },
-      { id: "chase-high", text: "Chase the feeling again", effect: { risk: 6, consistency: -3 }, flags: ["breakthrough_seen"] },
-      { id: "share-credit", text: "Let someone celebrate with you", effect: { social: 6, creativity: 3 }, flags: ["breakthrough_seen", "asked_for_help"] }
+      { id: "build-system", text: "Write down what worked and make it a routine", effect: { consistency: 8, discipline: 6 }, flags: ["breakthrough_seen", "stayed_consistent"] },
+      { id: "chase-high", text: "Try to force another win right away", effect: { risk: 6, consistency: -3 }, flags: ["breakthrough_seen"] },
+      { id: "share-credit", text: "Call someone and say: this finally worked", effect: { social: 6, creativity: 3 }, flags: ["breakthrough_seen", "asked_for_help"] }
     ]
   },
   {
@@ -300,9 +300,9 @@ const sceneTemplates: SceneTemplate[] = [
       "{name} can protect what is familiar, take a bigger risk, or choose a brave path that still feels sustainable."
     ],
     choices: [
-      { id: "choose-known", text: "Keep the life you know", effect: { discipline: 2, risk: -6, social: 2 } },
-      { id: "choose-next", text: "Step into the scary new option", effect: { risk: 8, creativity: 5, luck: 3 }, flags: ["took_big_risk"] },
-      { id: "choose-balanced", text: "Choose the brave option you can handle", effect: { consistency: 6, social: 3, discipline: 3 }, flags: ["stayed_consistent"] }
+      { id: "choose-known", text: "Choose stability, even if progress is slower", effect: { discipline: 2, risk: -6, social: 2 } },
+      { id: "choose-next", text: "Take the bigger risk because you might regret not trying", effect: { risk: 8, creativity: 5, luck: 3 }, flags: ["took_big_risk"] },
+      { id: "choose-balanced", text: "Grow steadily and protect your peace", effect: { consistency: 6, social: 3, discipline: 3 }, flags: ["stayed_consistent"] }
     ]
   },
   {
@@ -313,10 +313,10 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "sunrise",
     mood: "hopeful",
     memoryObject: {
-      id: "photo",
-      name: "Photo",
-      description: "Someone laughing outside the frame. Proof that you were not alone.",
-      quote: "Someone was there for the story.",
+      id: "old-photo",
+      name: "Old photo",
+      description: "A blurry photo from a normal day with someone who kept showing up.",
+      quote: "Someone was there before it worked.",
       effect: { social: 5, luck: 1 }
     },
     narration: [
@@ -324,9 +324,9 @@ const sceneTemplates: SceneTemplate[] = [
       "The goal still matters, but now {name} understands that a future feels different depending on who gets to share it."
     ],
     choices: [
-      { id: "call-someone", text: "Call someone who stayed", effect: { social: 8 }, flags: ["asked_for_help"] },
-      { id: "stand-alone", text: "Keep this scene private", effect: { discipline: 5, social: -4 }, flags: ["isolated_self"] },
-      { id: "thank-them", text: "Thank them before the moment passes", effect: { social: 7, consistency: 2 }, flags: ["asked_for_help"] }
+      { id: "call-someone", text: "Call the person who kept believing in you", effect: { social: 8 }, flags: ["asked_for_help"] },
+      { id: "stand-alone", text: "Keep the win private because sharing feels hard", effect: { discipline: 5, social: -4 }, flags: ["isolated_self"] },
+      { id: "thank-them", text: "Send a real thank-you before you forget", effect: { social: 7, consistency: 2 }, flags: ["asked_for_help"] }
     ]
   },
   {
@@ -337,16 +337,16 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "void",
     mood: "focused",
     memoryObject: {
-      id: "broken-clock",
-      name: "Broken clock",
-      description: "Stopped at a time you used to think was wasted.",
-      quote: "Even lost time taught me something.",
+      id: "alarm-clock",
+      name: "Alarm clock",
+      description: "The alarm you slept through, then learned to respect.",
+      quote: "Even late mornings taught me something.",
       effect: { consistency: 3, discipline: 2 }
     },
     movieMoment: {
       id: "fake-ending",
       title: "The Ending That Keeps Going",
-      description: "The screen fades out, then the Life Core turns back on.",
+      description: "The room goes quiet, then one small light turns back on.",
       rarity: "rare"
     },
     narration: [
@@ -354,9 +354,9 @@ const sceneTemplates: SceneTemplate[] = [
       "The old question is still there, but it no longer runs the story. It has become part of the reason {name} kept going."
     ],
     choices: [
-      { id: "forgive", text: "Forgive the years it took", effect: { consistency: 4, social: 2 }, flags: ["returned_after_failure"] },
-      { id: "keep-hunger", text: "Keep wanting more, but hold it gently", effect: { risk: 4, discipline: 3 }, flags: ["stayed_consistent"] },
-      { id: "begin-again", text: "Start again quietly", effect: { creativity: 4, consistency: 5 }, flags: ["returned_after_failure"] }
+      { id: "forgive", text: "Stop punishing yourself for starting late", effect: { consistency: 4, social: 2 }, flags: ["returned_after_failure"] },
+      { id: "keep-hunger", text: "Keep improving, but speak to yourself kindly", effect: { risk: 4, discipline: 3 }, flags: ["stayed_consistent"] },
+      { id: "begin-again", text: "Pick one small thing to begin again tomorrow", effect: { creativity: 4, consistency: 5 }, flags: ["returned_after_failure"] }
     ]
   },
   {
@@ -371,7 +371,7 @@ const sceneTemplates: SceneTemplate[] = [
       "This is not the only life {name} could have lived. It is the one these choices created this time."
     ],
     choices: [
-      { id: "see-ending", text: "See your ending", effect: {}, nextScene: "ending" }
+      { id: "see-ending", text: "See how this life turned out", effect: {}, nextScene: "ending" }
     ]
   }
 ];
@@ -395,9 +395,9 @@ const secretSceneTemplates: SceneTemplate[] = [
       "Nothing dramatic happens, and that is the danger. The room feels smaller because the same choice keeps repeating."
     ],
     choices: [
-      { id: "tiny-exit", text: "Do the smallest thing that helps", effect: { consistency: 7, discipline: 3 }, flags: ["returned_after_failure"] },
-      { id: "decorate-cage", text: "Make the loop look productive", effect: { consistency: -5, creativity: 2 }, flags: ["avoided_work", "regret_repeated"] },
-      { id: "call-it-out", text: "Admit the pattern and break it", effect: { risk: 3, consistency: 5 }, flags: ["returned_after_failure"] }
+      { id: "tiny-exit", text: "Open the task and do only the first step", effect: { consistency: 7, discipline: 3 }, flags: ["returned_after_failure"] },
+      { id: "decorate-cage", text: "Clean, organize, and avoid the real work", effect: { consistency: -5, creativity: 2 }, flags: ["avoided_work", "regret_repeated"] },
+      { id: "call-it-out", text: "Say out loud: I am stuck, then do one thing", effect: { risk: 3, consistency: 5 }, flags: ["returned_after_failure"] }
     ]
   },
   {
@@ -411,7 +411,7 @@ const secretSceneTemplates: SceneTemplate[] = [
     movieMoment: {
       id: "silent-scene",
       title: "A Quiet Scene With No Choices",
-      description: "No speech, no big celebration, just the Life Core getting brighter.",
+      description: "No speech, no big celebration, just morning light getting brighter.",
       rarity: "secret"
     },
     narration: [
@@ -419,9 +419,9 @@ const secretSceneTemplates: SceneTemplate[] = [
       "Then the story quietly changes. There is proof now, and it came from staying with the work longer than usual."
     ],
     choices: [
-      { id: "keep-quiet", text: "Keep going without announcing it", effect: { consistency: 9, discipline: 5 }, flags: ["stayed_consistent", "breakthrough_seen"] },
-      { id: "share-small-win", text: "Let one person see the proof", effect: { social: 5, creativity: 3 }, flags: ["asked_for_help", "breakthrough_seen"] },
-      { id: "raise-standard", text: "Make the system slightly harder", effect: { discipline: 6, consistency: 4 }, flags: ["stayed_consistent"] }
+      { id: "keep-quiet", text: "Keep doing it quietly without posting about it", effect: { consistency: 9, discipline: 5 }, flags: ["stayed_consistent", "breakthrough_seen"] },
+      { id: "share-small-win", text: "Show one person and let yourself feel proud", effect: { social: 5, creativity: 3 }, flags: ["asked_for_help", "breakthrough_seen"] },
+      { id: "raise-standard", text: "Add one harder step to the routine", effect: { discipline: 6, consistency: 4 }, flags: ["stayed_consistent"] }
     ]
   },
   {
@@ -448,9 +448,9 @@ const secretSceneTemplates: SceneTemplate[] = [
       "It could be a mistake, or it could become the story people remember. Either way, it will change what happens next."
     ],
     choices: [
-      { id: "take-shortcut", text: "Take the shortcut, knowing the risk", effect: { risk: 10, luck: 6, consistency: -2 }, flags: ["took_big_risk", "lucky_event_seen"] },
-      { id: "bring-friend", text: "Make the jump with a witness", effect: { social: 7, risk: 5 }, flags: ["asked_for_help", "took_big_risk"] },
-      { id: "walk-away-smiling", text: "Walk away and keep the power", effect: { discipline: 5, consistency: 5 }, flags: ["stayed_consistent"] }
+      { id: "take-shortcut", text: "Take the shortcut and accept the messy week", effect: { risk: 10, luck: 6, consistency: -2 }, flags: ["took_big_risk", "lucky_event_seen"] },
+      { id: "bring-friend", text: "Ask a friend to do it with you so you do not freeze", effect: { social: 7, risk: 5 }, flags: ["asked_for_help", "took_big_risk"] },
+      { id: "walk-away-smiling", text: "Say no because your current progress matters", effect: { discipline: 5, consistency: 5 }, flags: ["stayed_consistent"] }
     ]
   }
 ];
@@ -458,41 +458,41 @@ const secretSceneTemplates: SceneTemplate[] = [
 const chaosEvents: ChaosEvent[] = [
   {
     id: "elevator-invite",
-    title: "The Elevator Invite",
+    title: "Unexpected Email",
     kind: "strange opportunity",
-    narration: "Someone hears one sentence about your goal and offers you a chance you do not feel ready for.",
+    narration: "An email lands while you are doing something normal. It is a real chance, and you do not feel ready.",
     effect: { luck: 8, risk: 5, social: 3 },
     flags: ["lucky_event_seen", "took_big_risk"]
   },
   {
     id: "delete-the-plan",
-    title: "Delete the Perfect Plan",
+    title: "Simpler Plan",
     kind: "impulsive decision",
-    narration: "You delete the complicated plan and try the simple version. Somehow, it works better.",
+    narration: "You stop trying to make the perfect plan and do the simplest next step instead.",
     effect: { consistency: 7, creativity: 3, discipline: -1 },
     flags: ["returned_after_failure", "stayed_consistent"]
   },
   {
     id: "wrong-number-oracle",
-    title: "The Wrong Number Text",
+    title: "Random Compliment",
     kind: "unexpected message",
-    narration: "A wrong-number text arrives with advice that is weirdly useful.",
+    narration: "Someone casually says your work helped them. They move on, but your whole night changes.",
     effect: { luck: 5, creativity: 4, social: 2 },
     flags: ["lucky_event_seen"]
   },
   {
     id: "shower-lightning",
-    title: "The Shower Idea",
+    title: "Idea in the Notes App",
     kind: "sudden creative idea",
-    narration: "The idea appears while shampoo is in your eyes. You keep repeating it until you can write it down.",
+    narration: "A small idea appears while you are half distracted, so you type it into your notes app.",
     effect: { creativity: 9, consistency: 2 },
     flags: ["breakthrough_seen"]
   },
   {
     id: "shortcut-with-teeth",
-    title: "The Risky Shortcut",
+    title: "Missed Deadline",
     kind: "risky shortcut",
-    narration: "A shortcut appears. It saves time, but it makes the next week messy.",
+    narration: "You miss a deadline and have to send an honest message instead of hiding.",
     effect: { risk: 8, luck: 4, social: -2 },
     flags: ["took_big_risk"]
   }
