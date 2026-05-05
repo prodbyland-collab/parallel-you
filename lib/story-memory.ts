@@ -31,7 +31,8 @@ export function createStoryMemory(
   scene: StoryScene,
   allScenes: StoryScene[],
   endings: EndingResult[] = [],
-  lastChoice?: StoryChoice
+  lastChoice?: StoryChoice,
+  previousStoryText: string[] = []
 ): StoryMemory {
   const sceneIndex = Math.max(0, allScenes.findIndex((item) => item.id === scene.id));
   return {
@@ -54,7 +55,7 @@ export function createStoryMemory(
     wildcardsUsed: state.wildcardsUsed,
     rareEventsTriggered: state.rareMomentsTriggered,
     emotionalConsequences: state.emotionalConsequences ?? [],
-    previousGeneratedText: state.generatedTextHistory ?? [],
+    previousGeneratedText: [...(state.generatedTextHistory ?? []), ...previousStoryText].slice(-160),
     previousEndingTitles: endings.map((ending) => ending.title),
     previousFinalLines: endings.map((ending) => ending.finalLine),
     seed: state.seed

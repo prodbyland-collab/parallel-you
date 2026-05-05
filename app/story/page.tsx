@@ -14,7 +14,7 @@ import { getEndingHistory, isEndingTooSimilar, regenerateEndingVariant, saveEndi
 import { generateEnding } from "@/lib/ending-generator";
 import { applyGeneratedConsequence, chooseSceneOption, collectMemoryObject, completeMiniGame, getAllScenes, getScene, isEnding, triggerChaosEvent } from "@/lib/story-engine";
 import { createStoryMemory } from "@/lib/story-memory";
-import { hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState } from "@/lib/story-storage";
+import { getStoryTextHistory, hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState, saveStoryTextHistory } from "@/lib/story-storage";
 import type { MemoryObject, StoryChoice, StoryRunState, StoryScene } from "@/lib/story-types";
 
 export default function StoryPage() {
@@ -22,6 +22,7 @@ export default function StoryPage() {
   const [state, setState] = useState<StoryRunState | null>(null);
   const [generatedScene, setGeneratedScene] = useState<StoryScene | null>(null);
   const [consequenceLines, setConsequenceLines] = useState<string[]>([]);
+  const [sceneLoading, setSceneLoading] = useState(false);
   const [choicesVisible, setChoicesVisible] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
 
@@ -35,7 +36,7 @@ export default function StoryPage() {
   }, [router]);
 
   const baseScene = useMemo(() => state ? getScene(state) : null, [state]);
-  const scene = baseScene && generatedScene?.id === baseScene.id ? generatedScene : baseScene;
+  const scene = baseScene && generatedScene?.id === baseScene.id ? generatedScene : null;
   const allScenes = useMemo(() => state ? getAllScenes(state) : [], [state]);
   const progressIndex = state ? Math.max(0, allScenes.findIndex((item) => item.id === state.currentSceneId)) : 0;
 
@@ -43,9 +44,14 @@ export default function StoryPage() {
     if (!state || !baseScene) return;
     let cancelled = false;
     setGeneratedScene(null);
-    const memory = createStoryMemory(state, baseScene, allScenes, getEndingHistory());
+    setChoicesVisible(false);
+    setSceneLoading(true);
+    const memory = createStoryMemory(state, baseScene, allScenes, getEndingHistory(), undefined, getStoryTextHistory());
     generateNextSceneWithAI(memory, baseScene).then((nextScene) => {
-      if (!cancelled) setGeneratedScene(nextScene);
+      if (cancelled) return;
+      setGeneratedScene(nextScene);
+      saveStoryTextHistory([nextScene.title, nextScene.narration, ...nextScene.choices.map((choice) => choice.text)]);
+      setSceneLoading(false);
     });
     return () => {
       cancelled = true;
@@ -84,19 +90,21 @@ export default function StoryPage() {
     setChoicesVisible(false);
     setTransitioning(true);
     window.setTimeout(async () => {
-      const memory = createStoryMemory(state, scene, allScenes, getEndingHistory(), choice);
+      const memory = createStoryMemory(state, scene, allScenes, getEndingHistory(), choice, getStoryTextHistory());
       const consequence = await generateConsequenceWithAI(choice, memory);
       setConsequenceLines(consequence.consequenceLines);
+      saveStoryTextHistory([choice.text, ...consequence.consequenceLines]);
       const next = applyGeneratedConsequence(chooseSceneOption(state, choice, scene), consequence.consequenceLines, consequence.delayedFlag);
       if (isEnding(next)) {
         const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
         const history = getEndingHistory();
-        const endingMemory = createStoryMemory(finalState, scene, allScenes, history, choice);
+        const endingMemory = createStoryMemory(finalState, scene, allScenes, history, choice, getStoryTextHistory());
         const draftEnding = await generateEndingWithAI(endingMemory, finalState).catch(() => generateEnding(finalState));
         const ending = isEndingTooSimilar(draftEnding, history) ? regenerateEndingVariant(draftEnding, finalState.profile, finalState) : draftEnding;
         saveStoryState(finalState);
         saveEnding(ending);
         saveEndingHistory(ending);
+        saveStoryTextHistory([ending.title, ending.identity, ending.reflection, ending.finalLine]);
         saveStorySignature(ending.signature);
         router.push("/ending");
         return;
@@ -117,7 +125,7 @@ export default function StoryPage() {
   if (!state || !scene) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#03040a] text-slate-200">
-        Loading your story...
+        {sceneLoading ? "Writing the next scene..." : "Loading your story..."}
       </main>
     );
   }

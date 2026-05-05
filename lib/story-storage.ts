@@ -6,6 +6,7 @@ import { areSignaturesSimilar } from "@/lib/story-signature";
 export const STORY_STATE_KEY = "direct-your-life:story-state";
 export const STORY_ENDING_KEY = "direct-your-life:ending";
 export const STORY_SIGNATURES_KEY = "direct-your-life:story-signatures";
+export const STORY_TEXT_HISTORY_KEY = "direct-your-life:story-text-history";
 
 export function saveStoryState(state: StoryRunState) {
   localStorage.setItem(STORY_STATE_KEY, JSON.stringify(state));
@@ -56,6 +57,24 @@ export function saveStorySignature(signature: string) {
   const signatures = getStorySignatures();
   const next = [signature, ...signatures.filter((saved) => saved !== signature)].slice(0, 12);
   localStorage.setItem(STORY_SIGNATURES_KEY, JSON.stringify(next));
+}
+
+export function getStoryTextHistory() {
+  const raw = localStorage.getItem(STORY_TEXT_HISTORY_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoryTextHistory(lines: string[]) {
+  const cleaned = lines.map((line) => line.trim()).filter(Boolean);
+  if (!cleaned.length) return;
+  const previous = getStoryTextHistory();
+  const next = Array.from(new Set([...cleaned, ...previous])).slice(0, 220);
+  localStorage.setItem(STORY_TEXT_HISTORY_KEY, JSON.stringify(next));
 }
 
 export function clearStoryState() {

@@ -64,6 +64,7 @@ export function buildScenePrompt(memory: StoryMemory) {
 SYSTEM = director. AI = writer.
 The app controls structure, acts, pacing, traits, flags, randomness, anti-repeat logic, and ending rules.
 You only write this next scene.
+You must write fresh text for this run. Do not reuse a prior scene shape.
 
 ${writingRules}
 
@@ -101,6 +102,12 @@ ${memory.recentChoices.join("\n") || "none"}
 Avoid repeating these lines/titles:
 ${memory.previousGeneratedText.slice(-18).join("\n") || "none"}
 
+Uniqueness rule:
+- Invent a new ordinary detail this time: a tab title, a dirty cup, a receipt, a weather detail, a badly named file, a half-written message, a chair sound, an alarm time.
+- Do not start scenes with the same rhythm as previous scenes.
+- If a previous scene was quiet, make this one quietly inconvenient.
+- If a previous scene had a phone, use a different object unless the phone is the consequence.
+
 Return ONLY valid JSON:
 {
   "sceneTitle": "short title",
@@ -131,6 +138,7 @@ Rules:
 - Make this scene feel caused by the last choice.
 - Mention one concrete object or action from the narrative thread.
 - The scene should have a little wit, but never become a joke.
+- Never output the fallback/base scene wording exactly.
 `;
 }
 
