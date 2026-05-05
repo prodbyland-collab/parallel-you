@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@netlify/plugin-nextjs": "^5.15.10",
     "@supabase/supabase-js": "^2.43.5",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
