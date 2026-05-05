@@ -1,10 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Brain, Check, Dices, Loader2, RefreshCcw, Save, Sparkles, Split, Zap } from "lucide-react";
-import { generateParallelLives, mergeParallelLives, type OnboardingInput, type ParallelVersion } from "@/lib/life-generator";
+import {
+  ArrowRight,
+  Brain,
+  Check,
+  Dices,
+  Heart,
+  Loader2,
+  RefreshCcw,
+  Save,
+  Sparkles,
+  Split,
+  TrendingUp,
+  Zap
+} from "lucide-react";
+import {
+  generateParallelLives,
+  mergeParallelLives,
+  type LifeMilestone,
+  type MilestoneCategory,
+  type OnboardingInput,
+  type ParallelVersion
+} from "@/lib/life-generator";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
-import { RadarChart } from "@/components/RadarChart";
 import { StatBars } from "@/components/StatBars";
 
 const initialInput: OnboardingInput = {
@@ -34,18 +53,36 @@ const sliders = [
   { key: "social", label: "Social energy" }
 ] as const;
 
+const categoryStyles: Record<MilestoneCategory, string> = {
+  money: "bg-amber-300/15 text-amber-100 border-amber-300/30",
+  health: "bg-emerald-300/15 text-emerald-100 border-emerald-300/30",
+  love: "bg-rose-300/15 text-rose-100 border-rose-300/30",
+  career: "bg-cyan-300/15 text-cyan-100 border-cyan-300/30",
+  creativity: "bg-fuchsia-300/15 text-fuchsia-100 border-fuchsia-300/30",
+  mindset: "bg-violet-300/15 text-violet-100 border-violet-300/30"
+};
+
 export function ParallelYouApp() {
   const [input, setInput] = useState<OnboardingInput>(initialInput);
   const [versions, setVersions] = useState<ParallelVersion[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activePathIds, setActivePathIds] = useState<string[]>([]);
   const [mergeIds, setMergeIds] = useState<string[]>([]);
+  const [selectedMilestone, setSelectedMilestone] = useState<{ versionId: string; milestone: LifeMilestone } | null>(null);
+  const [compareYear, setCompareYear] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "saved" | "error">("idle");
   const [error, setError] = useState("");
 
-  const selectedVersion = useMemo(
-    () => versions.find((version) => version.id === selectedId) ?? versions[0],
-    [selectedId, versions]
-  );
+  const activeVersions = useMemo(() => {
+    const selected = versions.filter((version) => activePathIds.includes(version.id));
+    return selected.length ? selected : versions.slice(0, 2);
+  }, [activePathIds, versions]);
+
+  const selectedVersion = useMemo(() => {
+    if (!selectedMilestone) return activeVersions[0] ?? versions[0];
+    return versions.find((version) => version.id === selectedMilestone.versionId) ?? activeVersions[0] ?? versions[0];
+  }, [activeVersions, selectedMilestone, versions]);
+
+  const years = useMemo(() => Array.from(new Set(activeVersions.flatMap((version) => version.timeline.map((item) => item.year)))).sort(), [activeVersions]);
 
   const updateInput = (key: keyof OnboardingInput, value: string | number) => {
     setInput((current) => ({ ...current, [key]: value }));
@@ -57,11 +94,20 @@ export function ParallelYouApp() {
     window.setTimeout(() => {
       const generated = generateParallelLives(input);
       setVersions(generated);
-      setSelectedId(generated[0].id);
+      setActivePathIds([generated[0].id, generated[1].id]);
+      setSelectedMilestone({ versionId: generated[0].id, milestone: generated[0].timeline[0] });
+      setCompareYear(generated[0].timeline[0].year);
       setMergeIds([]);
       setStatus("idle");
       document.getElementById("results")?.scrollIntoView({ behavior: "smooth" });
     }, 650);
+  };
+
+  const togglePath = (id: string) => {
+    setActivePathIds((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      return [...current, id].slice(-3);
+    });
   };
 
   const toggleMerge = (id: string) => {
@@ -73,7 +119,7 @@ export function ParallelYouApp() {
 
   const mergeTimelines = () => {
     if (mergeIds.length !== 2) {
-      setError("Select two timelines to merge.");
+      setError("Select two life paths to merge.");
       return;
     }
     const first = versions.find((version) => version.id === mergeIds[0]);
@@ -81,7 +127,9 @@ export function ParallelYouApp() {
     if (!first || !second) return;
     const merged = mergeParallelLives(first, second);
     setVersions((current) => [merged, ...current.filter((version) => version.id !== merged.id)]);
-    setSelectedId(merged.id);
+    setActivePathIds([merged.id, first.id]);
+    setSelectedMilestone({ versionId: merged.id, milestone: merged.timeline[0] });
+    setCompareYear(merged.timeline[0].year);
     setMergeIds([]);
     setError("");
   };
@@ -141,8 +189,8 @@ export function ParallelYouApp() {
               Meet the lives you almost became.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              Answer a few personal questions and Parallel You generates five alternate versions of your life: the focused one,
-              the reckless one, the creative one, the lucky one, and the real one you can still shape.
+              Answer a few personal questions and watch your future split into glowing paths: the current life, the bold
+              life, the disciplined life, and the strange lucky branch that keeps winking from the corner.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
@@ -153,7 +201,7 @@ export function ParallelYouApp() {
               </button>
               <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-6 py-4 text-slate-200">
                 <Zap size={18} className="text-amber-300" />
-                Deterministic, personal, instant
+                Timeline simulator
               </div>
             </div>
           </div>
@@ -163,19 +211,21 @@ export function ParallelYouApp() {
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Simulator preview</p>
-                  <h2 className="text-2xl font-bold">5-year echo map</h2>
+                  <h2 className="text-2xl font-bold">Future split map</h2>
                 </div>
                 <Dices className="text-cyan-200" />
               </div>
-              <div className="space-y-3">
-                {["Disciplined You", "Risk-Taking You", "Creative You", "Lucky You"].map((item, index) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-white/8 p-4">
-                    <div className="flex items-center justify-between gap-3">
+              <div className="space-y-5">
+                {["Current Life", "Alternative Life", "Merged Timeline"].map((item, index) => (
+                  <div key={item}>
+                    <div className="mb-2 flex items-center justify-between text-sm">
                       <span className="font-semibold">{item}</span>
-                      <span className="text-sm text-slate-400">Universe 0{index + 2}</span>
+                      <span className="text-slate-400">202{6 + index} - 2030</span>
                     </div>
-                    <div className="mt-3 h-2 rounded-full bg-white/10">
-                      <div className="h-2 rounded-full bg-gradient-to-r from-cyan-300 to-fuchsia-400" style={{ width: `${64 + index * 8}%` }} />
+                    <div className="relative h-2 rounded-full bg-white/10">
+                      <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-amber-300" style={{ width: `${72 + index * 10}%` }} />
+                      <span className="absolute -top-1 left-1/4 h-4 w-4 rounded-full border border-white/60 bg-cyan-200 shadow-cyan" />
+                      <span className="absolute -top-1 left-2/3 h-4 w-4 rounded-full border border-white/60 bg-fuchsia-200 shadow-glow" />
                     </div>
                   </div>
                 ))}
@@ -191,7 +241,7 @@ export function ParallelYouApp() {
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-cyan-200">Onboarding</p>
             <h2 className="text-3xl font-black sm:text-4xl">Feed the timeline engine.</h2>
             <p className="mt-4 text-slate-300">
-              The generator uses editable templates in one file, so the app stays easy to manage while still feeling personal.
+              The generator uses editable milestone templates in one file, so every future branch stays easy to tune.
             </p>
           </div>
 
@@ -253,14 +303,14 @@ export function ParallelYouApp() {
 
       <section id="results" className="relative px-4 py-14 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="mb-8 flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-fuchsia-200">Results dashboard</p>
-              <h2 className="text-3xl font-black sm:text-4xl">Your parallel lives</h2>
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-fuchsia-200">Timeline results</p>
+              <h2 className="text-3xl font-black sm:text-4xl">Watch your future split.</h2>
             </div>
             <div className="flex flex-wrap gap-3">
               <button onClick={mergeTimelines} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-slate-100 hover:bg-white/10">
-                <Split size={16} /> Merge timelines
+                <Split size={16} /> Merge two paths
               </button>
               <button onClick={() => document.getElementById("onboarding")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-slate-100 hover:bg-white/10">
                 <RefreshCcw size={16} /> Try another decision
@@ -274,90 +324,87 @@ export function ParallelYouApp() {
           {error && <div className="mb-5 rounded-2xl border border-rose-300/30 bg-rose-400/10 p-4 text-rose-100">{error}</div>}
           {!versions.length && (
             <div className="glass rounded-3xl p-8 text-center text-slate-300">
-              Your dashboard is empty. Generate your first set of parallel lives to compare them here.
+              Your timeline field is empty. Generate your first set of parallel lives to see the split.
             </div>
           )}
 
-          {!!versions.length && selectedVersion && (
-            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="grid gap-4">
-                {versions.map((version) => (
-                  <button
-                    key={version.id}
-                    onClick={() => setSelectedId(version.id)}
-                    className={`rounded-3xl border p-4 text-left transition ${
-                      selectedVersion.id === version.id ? "border-cyan-300/70 bg-white/14" : "border-white/10 bg-white/6 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-xl font-black">{version.title}</h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{version.shortStory}</p>
-                      </div>
-                      <span className={`h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br ${version.accent}`} />
-                    </div>
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <label className="flex items-center gap-2 text-sm text-slate-300" onClick={(event) => event.stopPropagation()}>
-                        <input type="checkbox" checked={mergeIds.includes(version.id)} onChange={() => toggleMerge(version.id)} className="accent-cyan-300" />
-                        Select to merge
-                      </label>
-                      <span className="text-xs uppercase tracking-[0.2em] text-slate-500">{version.archetype}</span>
-                    </div>
-                  </button>
-                ))}
+          {!!versions.length && (
+            <div className="space-y-6">
+              <div className="glass rounded-3xl p-4 sm:p-5">
+                <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h3 className="font-bold">Life paths</h3>
+                    <p className="text-sm text-slate-400">Show up to three paths. Select two for comparison or merge.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {versions.map((version) => (
+                      <button
+                        key={version.id}
+                        onClick={() => togglePath(version.id)}
+                        className={`rounded-full border px-3 py-2 text-sm transition ${
+                          activeVersions.some((item) => item.id === version.id)
+                            ? "border-cyan-300/60 bg-cyan-300/15 text-cyan-50"
+                            : "border-white/10 bg-white/6 text-slate-300 hover:bg-white/10"
+                        }`}
+                      >
+                        {version.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {versions.map((version) => (
+                    <label key={version.id} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-sm text-slate-300">
+                      <input type="checkbox" checked={mergeIds.includes(version.id)} onChange={() => toggleMerge(version.id)} className="accent-cyan-300" />
+                      Merge: {version.title}
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              <article className="glass rounded-3xl p-5 sm:p-7">
-                <div className={`mb-6 rounded-3xl bg-gradient-to-br ${selectedVersion.accent} p-px`}>
-                  <div className="rounded-3xl bg-void/90 p-5">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="text-3xl font-black">{selectedVersion.title}</h3>
-                        <p className="mt-3 max-w-2xl leading-7 text-slate-300">{selectedVersion.shortStory}</p>
-                      </div>
-                      <RadarChart scores={selectedVersion.scores} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Info title="Career direction" value={selectedVersion.careerDirection} />
-                  <Info title="Money situation" value={selectedVersion.moneySituation} />
-                  <Info title="Social life" value={selectedVersion.socialLife} />
-                  <Info title="Mental state" value={selectedVersion.mentalState} />
-                  <Info title="Biggest achievement" value={selectedVersion.biggestAchievement} />
-                  <Info title="Biggest weakness" value={selectedVersion.biggestWeakness} />
-                </div>
-
-                <div className="mt-5 rounded-3xl border border-white/10 bg-white/8 p-5">
-                  <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">Quote</p>
-                  <blockquote className="mt-2 text-2xl font-black leading-tight text-white">&ldquo;{selectedVersion.quote}&rdquo;</blockquote>
-                </div>
-
-                <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="glass overflow-hidden rounded-3xl p-4 sm:p-6">
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h4 className="mb-3 font-bold">5-year timeline</h4>
-                    <ol className="space-y-3">
-                      {selectedVersion.timeline.map((item) => (
-                        <li key={item} className="rounded-2xl border border-white/10 bg-white/6 p-3 text-sm leading-6 text-slate-300">
-                          {item}
-                        </li>
-                      ))}
-                    </ol>
+                    <h3 className="text-2xl font-black">Future branches</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                      Click any milestone to inspect the hidden personality data, life changes, and emotional state behind that year.
+                    </p>
                   </div>
-                  <div>
-                    <h4 className="mb-3 font-bold">Score comparison</h4>
-                    <StatBars scores={selectedVersion.scores} />
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {selectedVersion.personalityTraits.map((trait) => (
-                        <span key={trait} className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-sm text-slate-200">
-                          {trait}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {years.map((year) => (
+                      <button
+                        key={year}
+                        onClick={() => setCompareYear(year)}
+                        className={`rounded-full px-3 py-2 text-sm transition ${
+                          compareYear === year ? "bg-white text-void" : "border border-white/10 bg-white/6 text-slate-300 hover:bg-white/10"
+                        }`}
+                      >
+                        {year}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </article>
+
+                <div className="space-y-8 lg:space-y-10">
+                  {activeVersions.map((version, pathIndex) => (
+                    <TimelinePath
+                      key={version.id}
+                      version={version}
+                      index={pathIndex}
+                      selectedMilestone={selectedMilestone}
+                      onSelect={(milestone) => {
+                        setSelectedMilestone({ versionId: version.id, milestone });
+                        setCompareYear(milestone.year);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+                <MilestoneDetails version={selectedVersion} milestone={selectedMilestone?.milestone ?? selectedVersion?.timeline[0]} />
+                <YearComparison year={compareYear} versions={activeVersions} />
+              </div>
             </div>
           )}
         </div>
@@ -366,11 +413,169 @@ export function ParallelYouApp() {
   );
 }
 
-function Info({ title, value }: { title: string; value: string }) {
+function TimelinePath({
+  version,
+  index,
+  selectedMilestone,
+  onSelect
+}: {
+  version: ParallelVersion;
+  index: number;
+  selectedMilestone: { versionId: string; milestone: LifeMilestone } | null;
+  onSelect: (milestone: LifeMilestone) => void;
+}) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/6 p-4">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{title}</p>
-      <p className="leading-6 text-slate-200">{value}</p>
+    <div className="relative">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className={`mb-2 h-1.5 w-24 rounded-full bg-gradient-to-r ${version.accent} shadow-lg ${version.glow}`} />
+          <h4 className="text-xl font-black">{version.title}</h4>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{version.summary}</p>
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-400">
+          Path 0{index + 1}
+        </span>
+      </div>
+
+      <div className="relative lg:px-2">
+        <div className={`absolute left-4 top-0 h-full w-1 rounded-full bg-gradient-to-b ${version.accent} opacity-70 shadow-lg ${version.glow} lg:left-0 lg:top-16 lg:h-1 lg:w-full lg:bg-gradient-to-r`} />
+        <div className="grid gap-4 pl-12 lg:grid-cols-5 lg:gap-3 lg:pl-0">
+          {version.timeline.map((milestone, milestoneIndex) => {
+            const isSelected = selectedMilestone?.versionId === version.id && selectedMilestone.milestone.year === milestone.year;
+            return (
+              <button
+                key={`${version.id}-${milestone.year}`}
+                onClick={() => onSelect(milestone)}
+                className={`timeline-pop group relative rounded-2xl border p-4 text-left transition hover:-translate-y-1 ${
+                  isSelected ? "border-white/60 bg-white/15" : "border-white/10 bg-white/[0.07] hover:bg-white/[0.12]"
+                }`}
+                style={{ animationDelay: `${milestoneIndex * 80}ms` }}
+              >
+                <span className={`absolute -left-[2.65rem] top-5 h-5 w-5 rounded-full border-2 border-white bg-gradient-to-br ${version.accent} shadow-lg ${version.glow} lg:left-1/2 lg:top-[-2.15rem] lg:-translate-x-1/2`} />
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span className="font-black text-white">{milestone.dateLabel}</span>
+                  <span className={`rounded-full border px-2 py-1 text-[11px] uppercase ${categoryStyles[milestone.category]}`}>{milestone.category}</span>
+                </div>
+                <h5 className="min-h-12 font-bold leading-6 text-white">{milestone.title}</h5>
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">{milestone.description}</p>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className={`h-full rounded-full bg-gradient-to-r ${version.accent}`} style={{ width: `${milestone.impactScore}%` }} />
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Impact {milestone.impactScore}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MilestoneDetails({ version, milestone }: { version?: ParallelVersion; milestone?: LifeMilestone }) {
+  if (!version || !milestone) {
+    return (
+      <div className="glass rounded-3xl p-6 text-slate-300">
+        Select a milestone to open its hidden timeline data.
+      </div>
+    );
+  }
+
+  return (
+    <article className="glass rounded-3xl p-5 sm:p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm uppercase tracking-[0.25em] text-cyan-200">{version.title} / {milestone.dateLabel}</p>
+          <h3 className="mt-2 text-2xl font-black">{milestone.title}</h3>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs uppercase ${categoryStyles[milestone.category]}`}>{milestone.category}</span>
+      </div>
+      <p className="leading-7 text-slate-300">{milestone.description}</p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <Delta label="Emotional state" value={milestone.emotionalState} />
+        <Delta label="Money" value={milestone.moneyChange} />
+        <Delta label="Relationships" value={milestone.relationshipChange} />
+        <Delta label="Health" value={milestone.healthChange} />
+        <Delta label="Creativity" value={milestone.creativityChange} />
+        <Delta label="Impact score" value={`${milestone.impactScore}/100`} />
+      </div>
+
+      <details className="mt-5 rounded-2xl border border-white/10 bg-white/6 p-4">
+        <summary className="cursor-pointer font-bold text-white">Open full life profile</summary>
+        <div className="mt-4 grid gap-4 text-sm leading-6 text-slate-300 md:grid-cols-2">
+          <ProfileLine label="Traits" value={version.personalityTraits.join(", ")} />
+          <ProfileLine label="Career" value={version.careerDirection} />
+          <ProfileLine label="Money situation" value={version.moneySituation} />
+          <ProfileLine label="Social life" value={version.socialLife} />
+          <ProfileLine label="Mental state" value={version.mentalState} />
+          <ProfileLine label="Achievement" value={version.biggestAchievement} />
+          <ProfileLine label="Weakness" value={version.biggestWeakness} />
+          <ProfileLine label="Quote" value={`"${version.quote}"`} />
+        </div>
+        <div className="mt-5">
+          <StatBars scores={version.scores} compact />
+        </div>
+      </details>
+    </article>
+  );
+}
+
+function YearComparison({ year, versions }: { year: number | null; versions: ParallelVersion[] }) {
+  const rows = versions
+    .map((version) => ({ version, milestone: version.timeline.find((item) => item.year === year) }))
+    .filter((row): row is { version: ParallelVersion; milestone: LifeMilestone } => Boolean(row.milestone));
+
+  if (!year || !rows.length) {
+    return (
+      <div className="glass rounded-3xl p-6 text-slate-300">
+        Choose a year to compare the same moment across timelines.
+      </div>
+    );
+  }
+
+  return (
+    <aside className="glass rounded-3xl p-5 sm:p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <TrendingUp className="text-amber-200" />
+        <div>
+          <p className="text-sm uppercase tracking-[0.25em] text-amber-100">Same-year comparison</p>
+          <h3 className="text-2xl font-black">{year}</h3>
+        </div>
+      </div>
+      <div className="space-y-4">
+        {rows.map(({ version, milestone }) => (
+          <div key={version.id} className="rounded-2xl border border-white/10 bg-white/6 p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h4 className="font-black">{version.title}</h4>
+              <span className={`rounded-full border px-2 py-1 text-[11px] uppercase ${categoryStyles[milestone.category]}`}>{milestone.category}</span>
+            </div>
+            <p className="text-sm font-semibold text-white">{milestone.title}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">{milestone.description}</p>
+            <div className="mt-3 grid gap-2 text-xs text-slate-300 sm:grid-cols-2">
+              <span><Heart className="mr-1 inline h-3 w-3 text-rose-200" /> {milestone.emotionalState}</span>
+              <span>Impact {milestone.impactScore}/100</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function Delta({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+      <p className="mb-1 text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="text-sm leading-6 text-slate-200">{value}</p>
+    </div>
+  );
+}
+
+function ProfileLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1">{value}</p>
     </div>
   );
 }

@@ -53,3 +53,19 @@ button {
 .text-balance {
   text-wrap: balance;
 }
+
+.timeline-pop {
+  animation: timeline-pop 520ms ease both;
+}
+
+@keyframes timeline-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
