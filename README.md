@@ -4,7 +4,7 @@ Parallel You is a Next.js MVP that generates five alternate versions of a user's
 
 ## Stack
 
-- Next.js App Router
+- Next.js App Router, pinned to the stable Next 14 line for broad hosted editor compatibility
 - React + TypeScript
 - Tailwind CSS
 - Supabase-ready data model
