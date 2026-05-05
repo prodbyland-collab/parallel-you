@@ -23,6 +23,19 @@ export type LifeScores = Pick<PathStats, "happiness" | "money" | "health" | "rel
 
 export type MilestoneBadge = "SAFE" | "RISKY" | "RARE" | "HIGH REWARD" | "FOCUS" | "LUCK";
 
+export type AvatarMood = "hopeful" | "tired" | "confident" | "focused" | "lost" | "breakthrough";
+export type AvatarPosture = "neutral" | "slouched" | "strong" | "walking" | "celebrating";
+export type SceneType = "bedroom" | "studio" | "city" | "sunrise" | "spotlight" | "void";
+
+export type AvatarState = {
+  mood: AvatarMood;
+  posture: AvatarPosture;
+  outfitLevel: number;
+  auraIntensity: number;
+  cinematicColor: string;
+  sceneType: SceneType;
+};
+
 export type GameMilestone = {
   id: string;
   year: number;
@@ -34,6 +47,7 @@ export type GameMilestone = {
   badge: MilestoneBadge;
   statsChange: PathStats;
   emotionalState: string;
+  avatarState: AvatarState;
 };
 
 export type LifePath = {
@@ -97,19 +111,53 @@ const milestone = (
   lesson: string,
   badge: MilestoneBadge,
   statsChange: Partial<PathStats>,
-  emotionalState: string
-): GameMilestone => ({
-  id: `${pathId}-${year}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
-  year,
-  age,
-  title,
-  simpleResult,
-  whyItHappened,
-  lesson,
-  badge,
-  statsChange: statChange(statsChange),
-  emotionalState
-});
+  emotionalState: string,
+  avatarState?: Partial<AvatarState>
+): GameMilestone => {
+  const change = statChange(statsChange);
+  return {
+    id: `${pathId}-${year}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
+    year,
+    age,
+    title,
+    simpleResult,
+    whyItHappened,
+    lesson,
+    badge,
+    statsChange: change,
+    emotionalState,
+    avatarState: { ...defaultAvatarState(pathId, year, badge, change), ...avatarState }
+  };
+};
+
+function defaultAvatarState(pathId: string, year: number, badge: MilestoneBadge, change: PathStats): AvatarState {
+  const episode = clamp(year - 2025, 1, 5);
+  const positiveEnergy = change.happiness + change.creativity + change.money + change.discipline;
+  const tired = change.health < -3 || change.happiness < -3;
+  const breakthrough = badge === "HIGH REWARD" || badge === "RARE";
+
+  const mood: AvatarMood = breakthrough ? "breakthrough" : tired ? "tired" : change.discipline > 8 ? "focused" : positiveEnergy > 18 ? "confident" : "hopeful";
+  const posture: AvatarPosture = breakthrough ? "celebrating" : tired ? "slouched" : change.discipline > 8 ? "strong" : episode > 2 ? "walking" : "neutral";
+
+  const pathScene: Record<string, Pick<AvatarState, "cinematicColor" | "sceneType">> = {
+    current: { cinematicColor: "#22d3ee", sceneType: episode < 3 ? "bedroom" : "void" },
+    disciplined: { cinematicColor: "#34d399", sceneType: "sunrise" },
+    risk: { cinematicColor: "#fb7185", sceneType: "city" },
+    creative: { cinematicColor: "#d946ef", sceneType: "studio" },
+    lucky: { cinematicColor: "#facc15", sceneType: "spotlight" }
+  };
+
+  const scene = pathScene[pathId] ?? { cinematicColor: "#a78bfa", sceneType: "void" as SceneType };
+
+  return {
+    mood,
+    posture,
+    outfitLevel: episode,
+    auraIntensity: clamp(32 + episode * 10 + Math.max(0, positiveEnergy), 0, 100),
+    cinematicColor: scene.cinematicColor,
+    sceneType: scene.sceneType
+  };
+}
 
 export function normalizeInput(input: OnboardingInput): OnboardingInput {
   return {

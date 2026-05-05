@@ -172,6 +172,107 @@ button {
   width: 100% !important;
 }
 
+.three-cinema-scene canvas {
+  display: block;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.cinema-shell {
+  background:
+    radial-gradient(circle at 50% 24%, rgba(34, 211, 238, 0.12), transparent 32rem),
+    radial-gradient(circle at 82% 45%, rgba(217, 70, 239, 0.12), transparent 28rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 20%, rgba(0, 0, 0, 0.5)),
+    #03040a;
+}
+
+.cinema-stage {
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.75), 0 30px 90px rgba(0, 0, 0, 0.35);
+}
+
+.cinema-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0 34%, rgba(0, 0, 0, 0.45) 72%),
+    linear-gradient(rgba(255, 255, 255, 0.04) 50%, transparent 50%);
+  background-size: auto, 100% 4px;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.letterbox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  height: clamp(2.5rem, 8vw, 5.5rem);
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.62), transparent);
+}
+
+.letterbox.bottom-0 {
+  top: auto;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.62), transparent);
+}
+
+.cinema-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 1.5rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(22px);
+}
+
+.cinema-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 0 38%, rgba(255, 255, 255, 0.07) 48%, transparent 58%);
+  transform: translateX(-120%);
+  animation: cinema-sheen 8s ease-in-out infinite;
+}
+
+.cinema-kicker {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(165, 243, 252);
+}
+
+.cinema-title {
+  text-shadow: 0 0 30px rgba(34, 211, 238, 0.22), 0 4px 28px rgba(0, 0, 0, 0.8);
+  animation: title-enter 520ms ease both;
+}
+
+.cinema-subtitle {
+  animation: subtitle-enter 420ms ease both;
+}
+
+.cinema-control {
+  display: grid;
+  min-height: 2.7rem;
+  cursor: pointer;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.cinema-control:hover {
+  transform: translateY(-1px) scale(1.02);
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.18);
+}
+
 .path-draw {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
@@ -259,5 +360,42 @@ button {
 
   50% {
     transform: scale(1.025);
+  }
+}
+
+@keyframes cinema-sheen {
+  0%,
+  72% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes title-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes subtitle-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

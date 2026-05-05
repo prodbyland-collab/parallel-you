@@ -1,18 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ArrowRight, Brain, Check, GitCompare, GitMerge, Loader2, RotateCcw, Save, Sparkles, Split, Target } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Brain, Check, Loader2, Save, Sparkles, Split } from "lucide-react";
 import {
   generateLifeSimulation,
   mergeLifePaths,
   type GameMilestone,
   type LifePath,
   type LifeSimulationResult,
-  type OnboardingInput,
-  type PathStats
+  type OnboardingInput
 } from "@/lib/life-generator";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
-import { ThreeLifeMap } from "@/components/ThreeLifeMap";
+import { CinematicLifeScene } from "@/components/results/CinematicLifeScene";
+import { CinematicStats } from "@/components/results/CinematicStats";
+import { EpisodePlayer } from "@/components/results/EpisodePlayer";
+import { TimelineStrip } from "@/components/results/TimelineStrip";
 
 const initialInput: OnboardingInput = {
   name: "",
@@ -41,24 +43,6 @@ const sliders = [
   { key: "social", label: "Social energy" }
 ] as const;
 
-const statLabels: Array<[keyof PathStats, string]> = [
-  ["money", "Money"],
-  ["health", "Health"],
-  ["happiness", "Happiness"],
-  ["relationships", "Relationships"],
-  ["creativity", "Creativity"],
-  ["discipline", "Discipline"]
-];
-
-const badgeClass: Record<GameMilestone["badge"], string> = {
-  SAFE: "border-cyan-300/40 bg-cyan-300/10 text-cyan-100",
-  RISKY: "border-rose-300/40 bg-rose-300/10 text-rose-100",
-  RARE: "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-100",
-  "HIGH REWARD": "border-amber-300/40 bg-amber-300/10 text-amber-100",
-  FOCUS: "border-emerald-300/40 bg-emerald-300/10 text-emerald-100",
-  LUCK: "border-lime-300/40 bg-lime-300/10 text-lime-100"
-};
-
 export function ParallelYouApp() {
   const [input, setInput] = useState<OnboardingInput>(initialInput);
   const [result, setResult] = useState<LifeSimulationResult | null>(null);
@@ -66,6 +50,7 @@ export function ParallelYouApp() {
   const [selectedNode, setSelectedNode] = useState<{ pathId: string; milestone: GameMilestone } | null>(null);
   const [comparePathId, setComparePathId] = useState<string | null>(null);
   const [mergePathId, setMergePathId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "saved" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -74,11 +59,25 @@ export function ParallelYouApp() {
   const currentPath = paths.find((path) => path.id === "current") ?? paths[0];
   const currentNode = selectedNode?.milestone ?? selectedPath?.milestones[0];
   const comparePath = paths.find((path) => path.id === comparePathId);
+  const episodeIndex = selectedPath && currentNode ? Math.max(0, selectedPath.milestones.findIndex((milestone) => milestone.id === currentNode.id)) : 0;
 
   const comparisonLines = useMemo(() => {
     if (!currentPath || !comparePath || currentPath.id === comparePath.id) return [];
     return getComparisonLines(currentPath, comparePath);
   }, [comparePath, currentPath]);
+
+  useEffect(() => {
+    if (!isPlaying || !selectedPath) return;
+    const timer = window.setInterval(() => {
+      setSelectedNode((current) => {
+        const activeMilestone = current?.pathId === selectedPath.id ? current.milestone : selectedPath.milestones[0];
+        const activeIndex = Math.max(0, selectedPath.milestones.findIndex((milestone) => milestone.id === activeMilestone.id));
+        const nextMilestone = selectedPath.milestones[(activeIndex + 1) % selectedPath.milestones.length];
+        return { pathId: selectedPath.id, milestone: nextMilestone };
+      });
+    }, 2800);
+    return () => window.clearInterval(timer);
+  }, [isPlaying, selectedPath]);
 
   const updateInput = (key: keyof OnboardingInput, value: string | number) => {
     setInput((current) => ({ ...current, [key]: value }));
@@ -102,6 +101,20 @@ export function ParallelYouApp() {
   const choosePath = (path: LifePath) => {
     setSelectedPathId(path.id);
     setSelectedNode({ pathId: path.id, milestone: path.milestones[0] });
+    setIsPlaying(false);
+  };
+
+  const selectMilestone = (path: LifePath, milestone: GameMilestone) => {
+    setSelectedPathId(path.id);
+    setSelectedNode({ pathId: path.id, milestone });
+    setIsPlaying(false);
+  };
+
+  const stepEpisode = (direction: 1 | -1) => {
+    if (!selectedPath || !currentNode) return;
+    const currentIndex = Math.max(0, selectedPath.milestones.findIndex((milestone) => milestone.id === currentNode.id));
+    const nextIndex = (currentIndex + direction + selectedPath.milestones.length) % selectedPath.milestones.length;
+    setSelectedNode({ pathId: selectedPath.id, milestone: selectedPath.milestones[nextIndex] });
   };
 
   const replayFromYear = () => {
@@ -125,6 +138,7 @@ export function ParallelYouApp() {
     setSelectedPathId(merged.id);
     setSelectedNode({ pathId: merged.id, milestone: merged.milestones[0] });
     setMergePathId(null);
+    setIsPlaying(false);
     setError("");
   };
 
@@ -259,209 +273,84 @@ export function ParallelYouApp() {
         )}
 
         {result && selectedPath && currentNode && (
-          <div className="sim-shell relative mx-auto min-h-[calc(100vh-3rem)] max-w-[1700px] overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-[#050712]/95 shadow-[0_0_80px_rgba(34,211,238,0.15)]">
+          <div className="cinema-shell relative mx-auto min-h-[calc(100vh-3rem)] max-w-[1800px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#03040a]/95 shadow-[0_0_100px_rgba(34,211,238,0.14)]">
             <div className="particle-field" />
-            <div className="relative z-10 grid min-h-[calc(100vh-3rem)] grid-rows-[auto_1fr]">
-              <header className="hud-panel flex flex-col gap-3 border-b border-cyan-300/20 bg-cyan-300/[0.04] px-4 py-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="relative z-10 grid min-h-[calc(100vh-3rem)] grid-rows-[auto_1fr_auto] gap-4 p-3 lg:p-4">
+              <header className="cinema-panel flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-cyan-100">Life Game Map</span>
-                  <span className="text-sm text-slate-300">Player: <b className="text-white">{result.userSummary.name}</b></span>
+                  <span className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-cyan-100">Parallel You: Cinematic Mode</span>
+                  <span className="text-sm text-slate-300">Viewer: <b className="text-white">{result.userSummary.name}</b></span>
                   <span className="text-sm text-slate-300">Age: <b className="text-white">{result.userSummary.currentAge}</b></span>
-                  <span className="text-sm text-slate-300">Country: <b className="text-white">{result.userSummary.country}</b></span>
-                  <span className="text-sm text-slate-300">Selected year: <b className="text-cyan-200">{currentNode.year}</b></span>
+                  <span className="text-sm text-slate-300">Origin: <b className="text-white">{result.userSummary.country}</b></span>
+                  <span className="text-sm text-slate-300">Now playing: <b style={{ color: selectedPath.color }}>{selectedPath.title}</b></span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={replayFromYear} className="game-button"><RotateCcw size={15} /> Replay from this year</button>
-                  <button onClick={saveTimeline} className="game-button bg-white text-void hover:bg-cyan-100">{status === "saved" ? <Check size={15} /> : <Save size={15} />} Save</button>
-                </div>
+                <button onClick={saveTimeline} className="game-button bg-white text-void hover:bg-cyan-100">
+                  {status === "saved" ? <Check size={15} /> : <Save size={15} />} {status === "saved" ? "Saved" : "Save Timeline"}
+                </button>
               </header>
 
-              {error && <div className="mx-4 mt-4 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{error}</div>}
+              {error && <div className="rounded-2xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{error}</div>}
 
-              <div className="grid min-h-0 gap-4 p-4 xl:grid-cols-[310px_1fr_340px]">
-                <LeftPanel result={result} selectedPath={selectedPath} onChoosePath={choosePath} />
-                <ThreeLifeMap
-                  result={result}
-                  selectedPath={selectedPath}
-                  selectedNode={selectedNode}
-                  onSelect={(path, milestone) => {
-                    setSelectedPathId(path.id);
-                    setSelectedNode({ pathId: path.id, milestone });
-                  }}
-                />
-                <RightPanel
-                  paths={paths}
-                  currentPath={currentPath}
-                  selectedPath={selectedPath}
-                  node={currentNode}
-                  comparePath={comparePath}
-                  comparisonLines={comparisonLines}
-                  mergePathId={mergePathId}
-                  onChoosePath={() => choosePath(selectedPath)}
-                  onCompare={() => setComparePathId(selectedPath.id === "current" ? null : selectedPath.id)}
-                  onMergePathChange={setMergePathId}
-                  onMerge={mergeWithSelected}
-                />
+              <div className="grid min-h-0 gap-4 xl:grid-cols-[1fr_380px]">
+                <div className="min-w-0">
+                  <CinematicLifeScene result={result} path={selectedPath} milestone={currentNode} episodeIndex={episodeIndex} />
+                </div>
+                <div className="grid min-h-0 gap-4 lg:grid-cols-2 xl:grid-cols-1">
+                  <EpisodePlayer
+                    path={selectedPath}
+                    milestone={currentNode}
+                    episodeIndex={episodeIndex}
+                    episodeCount={selectedPath.milestones.length}
+                    isPlaying={isPlaying}
+                    status={status}
+                    canCompare={selectedPath.id !== currentPath?.id}
+                    onPrevious={() => stepEpisode(-1)}
+                    onNext={() => stepEpisode(1)}
+                    onPlayToggle={() => setIsPlaying((playing) => !playing)}
+                    onChoose={() => choosePath(selectedPath)}
+                    onCompare={() => setComparePathId(selectedPath.id === "current" ? null : selectedPath.id)}
+                    onReplay={replayFromYear}
+                    onSave={saveTimeline}
+                    onMerge={mergeWithSelected}
+                  />
+                  <div className="space-y-4">
+                    <div className="cinema-panel p-4">
+                      <p className="cinema-kicker">You Today</p>
+                      <h3 className="mt-3 text-2xl font-black text-white">{result.userSummary.name}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">Goal: {result.userSummary.goal}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-400">What-if: {result.userSummary.whatIf}</p>
+                    </div>
+                    <CinematicStats path={selectedPath} milestone={currentNode} />
+                    <div className="cinema-panel p-4">
+                      <p className="cinema-kicker">Compare / Merge</p>
+                      {comparePath && comparisonLines.length ? (
+                        <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                          {comparisonLines.map((line) => <p key={line}>{line}</p>)}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm leading-6 text-slate-400">Pick another arc and compare it with Current Life.</p>
+                      )}
+                      <select value={mergePathId ?? ""} onChange={(event) => setMergePathId(event.target.value)} className="mt-4 w-full rounded-xl border border-white/10 bg-black/70 px-3 py-2 text-sm text-white">
+                        <option value="">Merge with...</option>
+                        {paths.filter((path) => path.id !== selectedPath.id).map((path) => <option key={path.id} value={path.id}>{path.title}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <TimelineStrip
+                paths={paths}
+                selectedPathId={selectedPath.id}
+                selectedMilestoneId={currentNode.id}
+                onSelectPath={choosePath}
+                onSelectMilestone={selectMilestone}
+              />
             </div>
           </div>
         )}
       </section>
     </main>
-  );
-}
-
-function LeftPanel({ result, selectedPath, onChoosePath }: { result: LifeSimulationResult; selectedPath: LifePath; onChoosePath: (path: LifePath) => void }) {
-  return (
-    <aside className="hud-panel min-h-0 overflow-y-auto rounded-3xl border border-white/10 bg-black/35 p-4">
-      <p className="mb-1 text-xs font-black uppercase tracking-[0.24em] text-cyan-200">You Today</p>
-      <div className="rounded-3xl border border-cyan-300/30 bg-cyan-300/10 p-4 shadow-cyan">
-        <div className="mb-3 flex items-center gap-3">
-          <span className="grid h-14 w-14 place-items-center rounded-full bg-white text-sm font-black text-void shadow-glow">YOU</span>
-          <div>
-            <h3 className="text-xl font-black">{result.userSummary.name}</h3>
-            <p className="text-sm text-slate-300">Age {result.userSummary.currentAge} / {result.userSummary.country}</p>
-          </div>
-        </div>
-        <p className="text-sm leading-6 text-slate-200"><b>Goal:</b> {result.userSummary.goal}</p>
-        <p className="mt-2 text-sm leading-6 text-slate-300"><b>What-if:</b> {result.userSummary.whatIf}</p>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
-          <span>Discipline {result.userSummary.disciplineScore}/10</span>
-          <span>Risk {result.userSummary.riskScore}/10</span>
-          <span>Creativity {result.userSummary.creativityScore}/10</span>
-          <span>Social {result.userSummary.socialScore}/10</span>
-        </div>
-      </div>
-
-      <div className="mt-5">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-fuchsia-200">Playable Paths</p>
-        <div className="space-y-2">
-          {result.paths.map((path) => (
-            <button
-              key={path.id}
-              onClick={() => onChoosePath(path)}
-              className={`w-full cursor-pointer rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${
-                selectedPath.id === path.id ? "border-cyan-300/50 bg-cyan-300/12" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
-              }`}
-            >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="font-black text-white">{path.title}</span>
-                <span className="h-3 w-3 rounded-full" style={{ background: path.color, boxShadow: `0 0 18px ${path.color}` }} />
-              </div>
-              <p className="text-sm text-cyan-100">{path.simpleMeaning}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-400">{path.personalSummary}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function RightPanel({
-  paths,
-  currentPath,
-  selectedPath,
-  node,
-  comparePath,
-  comparisonLines,
-  mergePathId,
-  onChoosePath,
-  onCompare,
-  onMergePathChange,
-  onMerge
-}: {
-  paths: LifePath[];
-  currentPath?: LifePath;
-  selectedPath: LifePath;
-  node: GameMilestone;
-  comparePath?: LifePath;
-  comparisonLines: string[];
-  mergePathId: string | null;
-  onChoosePath: () => void;
-  onCompare: () => void;
-  onMergePathChange: (id: string) => void;
-  onMerge: () => void;
-}) {
-  return (
-    <aside className="hud-panel min-h-0 overflow-y-auto rounded-3xl border border-white/10 bg-black/35 p-4">
-      <div className="event-pop rounded-3xl border border-fuchsia-300/30 bg-fuchsia-300/[0.06] p-4 shadow-glow">
-        <p className="text-xs font-black uppercase tracking-[0.24em] text-fuchsia-100">Event Unlocked</p>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <h3 className="text-2xl font-black">{node.title}</h3>
-          <span className={`rounded-full border px-2 py-1 text-[11px] font-black ${badgeClass[node.badge]}`}>{node.badge}</span>
-        </div>
-        <p className="mt-2 text-sm text-cyan-100">Year {node.year} / Age {node.age} / {selectedPath.title}</p>
-        <p className="mt-4 text-sm leading-6 text-slate-200"><b>What happened:</b> {node.simpleResult}</p>
-        <p className="mt-2 text-sm leading-6 text-slate-300"><b>Why:</b> {node.whyItHappened}</p>
-        <p className="mt-3 rounded-2xl border border-white/10 bg-white/[0.05] p-3 text-sm leading-6 text-amber-100"><b>Lesson:</b> {node.lesson}</p>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button onClick={onChoosePath} className="game-button justify-center"><Target size={15} /> Choose path</button>
-        <button onClick={onCompare} disabled={selectedPath.id === currentPath?.id} className="game-button justify-center disabled:cursor-not-allowed disabled:opacity-40"><GitCompare size={15} /> Compare</button>
-      </div>
-
-      <div className="mt-5">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-cyan-200">RPG Stats</p>
-        <div className="space-y-3">
-          {statLabels.map(([key, label]) => (
-            <StatBar key={key} label={label} value={selectedPath.stats[key]} delta={node.statsChange[key]} />
-          ))}
-        </div>
-        <div className="mt-4 grid gap-2 text-sm text-slate-300">
-          <p><b className="text-emerald-200">Best stat:</b> {formatStat(selectedPath.bestStat)}</p>
-          <p><b className="text-rose-200">Weakest stat:</b> {formatStat(selectedPath.weakestStat)}</p>
-          <p><b className="text-amber-200">Biggest tradeoff:</b> {selectedPath.biggestTradeoff}</p>
-          <p><b className="text-cyan-200">Emotional state:</b> {node.emotionalState}</p>
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-amber-100">Stats changed</p>
-        <div className="grid grid-cols-2 gap-2 text-sm text-slate-300">
-          {statLabels.map(([key, label]) => (
-            <span key={key} className={node.statsChange[key] >= 0 ? "text-emerald-100" : "text-rose-100"}>
-              {label} {node.statsChange[key] >= 0 ? "+" : ""}{node.statsChange[key]}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-fuchsia-100">Compare with Current Path</p>
-        {comparePath && comparisonLines.length ? (
-          <div className="space-y-2 text-sm leading-6 text-slate-300">
-            {comparisonLines.map((line) => <p key={line}>{line}</p>)}
-          </div>
-        ) : (
-          <p className="text-sm leading-6 text-slate-400">Select a non-current path, then hit Compare.</p>
-        )}
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-lime-100">Merge with another path</p>
-        <select value={mergePathId ?? ""} onChange={(event) => onMergePathChange(event.target.value)} className="w-full rounded-xl border border-white/10 bg-black/70 px-3 py-2 text-sm text-white">
-          <option value="">Choose path</option>
-          {paths.filter((path) => path.id !== selectedPath.id).map((path) => <option key={path.id} value={path.id}>{path.title}</option>)}
-        </select>
-        <button onClick={onMerge} className="game-button merge-preview mt-3 w-full justify-center"><GitMerge size={15} /> Generate merged path</button>
-      </div>
-    </aside>
-  );
-}
-
-function StatBar({ label, value, delta }: { label: string; value: number; delta: number }) {
-  return (
-    <div>
-      <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
-        <span>{label}</span>
-        <span className={delta >= 0 ? "text-emerald-200" : "text-rose-200"}>{value} XP ({delta >= 0 ? "+" : ""}{delta})</span>
-      </div>
-      <div className="h-3 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-amber-300 transition-all duration-500" style={{ width: `${value}%` }} />
-      </div>
-    </div>
   );
 }
 
@@ -474,8 +363,4 @@ function getComparisonLines(current: LifePath, other: LifePath) {
   if (other.stats.discipline > current.stats.discipline + 8) lines.push("You become more consistent, and progress gets easier to predict.");
   if (!lines.length) lines.push("This path is close to Current Path, but the emotional rhythm changes.");
   return lines;
-}
-
-function formatStat(stat: keyof PathStats) {
-  return stat === "relationships" ? "Relationships" : stat[0].toUpperCase() + stat.slice(1);
 }
