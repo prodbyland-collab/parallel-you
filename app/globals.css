@@ -301,6 +301,122 @@ button {
   transform: translateY(0) scale(0.99);
 }
 
+.story-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: #03040a;
+}
+
+.story-backdrop::before,
+.story-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  pointer-events: none;
+}
+
+.story-backdrop::before {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.12), transparent 0.5rem),
+    radial-gradient(circle at 44% 48%, rgba(255, 255, 255, 0.1), transparent 0.35rem),
+    radial-gradient(circle at 56% 50%, rgba(255, 255, 255, 0.08), transparent 0.45rem);
+  filter: blur(18px);
+  opacity: 0.9;
+  animation: backdrop-breathe 8s ease-in-out infinite;
+}
+
+.story-backdrop::after {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(34, 211, 238, 0.32) 0 1px, transparent 2px),
+    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 48%, transparent 56%);
+  background-position: 0 0, 70px 120px, center;
+  background-size: 190px 190px, 260px 260px, auto;
+  opacity: 0.36;
+  animation: particle-drift 32s linear infinite;
+}
+
+.story-backdrop-bedroom {
+  background:
+    radial-gradient(circle at 35% 42%, rgba(34, 211, 238, 0.22), transparent 18rem),
+    linear-gradient(120deg, rgba(15, 23, 42, 0.92), rgba(3, 4, 10, 0.96) 60%),
+    #03040a;
+}
+
+.story-backdrop-studio {
+  background:
+    radial-gradient(circle at 55% 42%, rgba(217, 70, 239, 0.25), transparent 20rem),
+    radial-gradient(circle at 25% 70%, rgba(34, 211, 238, 0.14), transparent 16rem),
+    #05030a;
+}
+
+.story-backdrop-city {
+  background:
+    linear-gradient(180deg, rgba(251, 113, 133, 0.1), transparent 45%),
+    repeating-linear-gradient(90deg, rgba(251, 113, 133, 0.18) 0 2px, transparent 2px 76px),
+    radial-gradient(circle at 65% 45%, rgba(251, 113, 133, 0.24), transparent 22rem),
+    #03040a;
+}
+
+.story-backdrop-sunrise {
+  background:
+    radial-gradient(circle at 62% 42%, rgba(250, 204, 21, 0.34), transparent 18rem),
+    linear-gradient(180deg, rgba(251, 146, 60, 0.18), rgba(3, 4, 10, 0.92) 58%),
+    #03040a;
+}
+
+.story-backdrop-void {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(139, 92, 246, 0.22), transparent 16rem),
+    radial-gradient(circle at 50% 48%, transparent 0 8rem, rgba(139, 92, 246, 0.1) 8.2rem, transparent 8.6rem),
+    #020209;
+}
+
+.story-backdrop-spotlight {
+  background:
+    conic-gradient(from 180deg at 50% 0%, transparent 0 34%, rgba(255, 255, 255, 0.16) 44%, transparent 58%),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 19rem),
+    #03040a;
+}
+
+.story-silhouette {
+  position: absolute;
+  bottom: 12%;
+  z-index: 1;
+  height: 18vh;
+  width: 5vh;
+  min-height: 6rem;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02));
+  filter: blur(0.4px);
+  opacity: 0.32;
+}
+
+.story-silhouette::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2.2vh;
+  height: 3.2vh;
+  width: 3.2vh;
+  min-height: 1.25rem;
+  min-width: 1.25rem;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.story-silhouette-left {
+  left: 10%;
+}
+
+.story-silhouette-right {
+  right: 11%;
+  transform: scale(0.78);
+  opacity: 0.22;
+}
+
 @media (max-width: 768px) {
   .letterbox {
     height: 3.25rem;
@@ -440,5 +556,18 @@ button {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes backdrop-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
   }
 }

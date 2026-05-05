@@ -24,8 +24,8 @@ const questions = [
   { key: "name", label: "Name or nickname", placeholder: "Giorgi", type: "text" },
   { key: "age", label: "Age", placeholder: "25", type: "number" },
   { key: "country", label: "Country", placeholder: "Georgia", type: "text" },
-  { key: "goal", label: "The dream still calling you", placeholder: "Make music, build a company, change my body...", type: "textarea" },
-  { key: "whatIf", label: "The what-if that follows you", placeholder: "What if I had started earlier?", type: "textarea" }
+  { key: "goal", label: "The thing your future keeps asking for", placeholder: "Make music, build a company, change my body...", type: "textarea" },
+  { key: "whatIf", label: "The old scene you keep replaying", placeholder: "What if I had started earlier?", type: "textarea" }
 ] as const;
 
 const sliders = [
@@ -66,9 +66,9 @@ export default function StartPage() {
         <section className="grid min-h-[calc(100vh-6rem)] items-center gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="cinema-kicker">Before the first scene</p>
-            <h1 className="mt-4 text-5xl font-black leading-[0.92] text-white md:text-7xl">Who are we directing?</h1>
+            <h1 className="mt-4 text-5xl font-black leading-[0.92] text-white md:text-7xl">Before the first choice, we need the person.</h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
-              These details become the emotional material of the story. No dashboards, no scores on screen. Just a film that bends around your choices.
+              These answers become the emotional weather of the film. No scores on screen. No quiz results. Just a story that bends around what you choose.
             </p>
           </div>
 

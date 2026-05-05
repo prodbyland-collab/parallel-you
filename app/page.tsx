@@ -27,10 +27,10 @@ export default function Home() {
               <Sparkles size={16} /> Interactive life film
             </div>
             <h1 className="max-w-5xl text-balance text-6xl font-black leading-[0.88] tracking-[-0.03em] text-white sm:text-7xl lg:text-8xl">
-              Play the movie of your life.
+              Direct the scene where your life changes.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              Make choices. Watch your world change. See the ending your decisions create.
+              A short interactive film about you. Make small choices, feel the world shift, and reach an ending that remembers what you did.
             </p>
             <Link href="/start" className="mt-8 inline-flex items-center justify-center gap-3 rounded-full bg-white px-7 py-4 text-base font-black text-void transition hover:scale-[1.02] hover:bg-cyan-100">
               <Play size={19} fill="currentColor" /> Start Your Story
@@ -42,8 +42,8 @@ export default function Home() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(34,211,238,0.2),transparent_14rem),linear-gradient(to_bottom,transparent,rgba(0,0,0,0.8))]" />
               <div className="absolute bottom-6 left-6 right-6">
                 <p className="cinema-kicker">Trailer Preview</p>
-                <h2 className="mt-3 text-4xl font-black leading-none text-white">ACT 1: The room before anything changes</h2>
-                <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">A quiet decision. A floating Life Core. A future waiting for direction.</p>
+                <h2 className="mt-3 text-4xl font-black leading-none text-white">ACT 1: The night the room gets too loud</h2>
+                <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">A quiet room. A floating Life Core. One choice that does not look important yet.</p>
               </div>
               <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-200/25 bg-cyan-300/10 blur-[1px] shadow-[0_0_80px_rgba(34,211,238,0.35)]" />
               <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_60px_rgba(255,255,255,0.8)]" />

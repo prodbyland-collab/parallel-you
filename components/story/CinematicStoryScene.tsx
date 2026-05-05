@@ -29,6 +29,15 @@ const sceneColors: Record<StoryScene["environment"], string> = {
   spotlight: "#f8fafc"
 };
 
+const sceneBackdropClasses: Record<StoryScene["environment"], string> = {
+  bedroom: "story-backdrop story-backdrop-bedroom",
+  studio: "story-backdrop story-backdrop-studio",
+  city: "story-backdrop story-backdrop-city",
+  sunrise: "story-backdrop story-backdrop-sunrise",
+  void: "story-backdrop story-backdrop-void",
+  spotlight: "story-backdrop story-backdrop-spotlight"
+};
+
 export function CinematicStoryScene({ scene, traits }: { scene: StoryScene; traits: HiddenTraits }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef({ scene, traits });
@@ -58,8 +67,12 @@ export function CinematicStoryScene({ scene, traits }: { scene: StoryScene; trai
 
   return (
     <div key={sceneKey} className="absolute inset-0">
-      <div ref={mountRef} className="three-cinema-scene absolute inset-0" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent,rgba(0,0,0,0.6)_76%)]" />
+      <div className={sceneBackdropClasses[scene.environment]}>
+        <span className="story-silhouette story-silhouette-left" />
+        <span className="story-silhouette story-silhouette-right" />
+      </div>
+      <div ref={mountRef} className="three-cinema-scene absolute inset-0 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_50%_42%,transparent,rgba(0,0,0,0.58)_76%)]" />
       {error && <div className="absolute inset-6 grid place-items-center rounded-3xl border border-rose-300/30 bg-rose-950/70 p-6 text-center text-rose-100">{error}</div>}
     </div>
   );
