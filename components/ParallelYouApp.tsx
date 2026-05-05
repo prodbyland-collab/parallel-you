@@ -12,6 +12,7 @@ import {
   type PathStats
 } from "@/lib/life-generator";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { ThreeLifeMap } from "@/components/ThreeLifeMap";
 
 const initialInput: OnboardingInput = {
   name: "",
@@ -65,7 +66,6 @@ export function ParallelYouApp() {
   const [selectedNode, setSelectedNode] = useState<{ pathId: string; milestone: GameMilestone } | null>(null);
   const [comparePathId, setComparePathId] = useState<string | null>(null);
   const [mergePathId, setMergePathId] = useState<string | null>(null);
-  const [hoveredNode, setHoveredNode] = useState<{ path: LifePath; milestone: GameMilestone; x: number; y: number } | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "saved" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -215,7 +215,7 @@ export function ParallelYouApp() {
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-cyan-200">Player Setup</p>
             <h2 className="text-3xl font-black sm:text-4xl">Set your starting stats.</h2>
-            <p className="mt-4 text-slate-300">Your answers become the “YOU TODAY” node and shape every future branch.</p>
+            <p className="mt-4 text-slate-300">Your answers become the YOU TODAY platform and shape every future branch.</p>
           </div>
 
           <div className="glass rounded-3xl p-5 sm:p-6">
@@ -280,12 +280,10 @@ export function ParallelYouApp() {
 
               <div className="grid min-h-0 gap-4 p-4 xl:grid-cols-[310px_1fr_340px]">
                 <LeftPanel result={result} selectedPath={selectedPath} onChoosePath={choosePath} />
-                <GameMap
+                <ThreeLifeMap
                   result={result}
                   selectedPath={selectedPath}
                   selectedNode={selectedNode}
-                  hoveredNode={hoveredNode}
-                  onHover={setHoveredNode}
                   onSelect={(path, milestone) => {
                     setSelectedPathId(path.id);
                     setSelectedNode({ pathId: path.id, milestone });
@@ -357,98 +355,6 @@ function LeftPanel({ result, selectedPath, onChoosePath }: { result: LifeSimulat
         </div>
       </div>
     </aside>
-  );
-}
-
-function GameMap({ result, selectedPath, selectedNode, hoveredNode, onHover, onSelect }: {
-  result: LifeSimulationResult;
-  selectedPath: LifePath;
-  selectedNode: { pathId: string; milestone: GameMilestone } | null;
-  hoveredNode: { path: LifePath; milestone: GameMilestone; x: number; y: number } | null;
-  onHover: (node: { path: LifePath; milestone: GameMilestone; x: number; y: number } | null) => void;
-  onSelect: (path: LifePath, milestone: GameMilestone) => void;
-}) {
-  const origin = { x: 105, y: 310 };
-  const branchYs = [130, 220, 310, 400, 490, 560];
-  const mobileRows = result.paths;
-
-  return (
-    <section className="hud-panel relative min-h-[640px] overflow-hidden rounded-3xl border border-cyan-300/15 bg-black/30">
-      <div className="absolute left-4 top-4 z-20 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-cyan-100">
-        Click nodes / hover for intel
-      </div>
-
-      <div className="hidden h-full overflow-auto md:block">
-        <svg viewBox="0 0 980 650" className="h-full min-h-[640px] w-[980px] max-w-none lg:w-full">
-          <defs>
-            <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-          </defs>
-          <g opacity="0.14">
-            {Array.from({ length: 15 }).map((_, index) => <line key={`v-${index}`} x1={index * 70} y1="0" x2={index * 70} y2="650" stroke="#fff" />)}
-            {Array.from({ length: 11 }).map((_, index) => <line key={`h-${index}`} x1="0" y1={index * 65} x2="980" y2={index * 65} stroke="#fff" />)}
-          </g>
-
-          <circle cx={origin.x} cy={origin.y} r="42" fill="#ffffff" filter="url(#glow)" />
-          <circle cx={origin.x} cy={origin.y} r="31" fill="#050712" stroke="#22d3ee" strokeWidth="3" />
-          <text x={origin.x - 34} y={origin.y - 6} fill="#fff" fontSize="13" fontWeight="900">YOU</text>
-          <text x={origin.x - 45} y={origin.y + 12} fill="#a5f3fc" fontSize="12" fontWeight="900">TODAY</text>
-          <text x={origin.x - 72} y={origin.y + 66} fill="#cbd5e1" fontSize="12">{result.userSummary.name}, {result.userSummary.currentAge}</text>
-
-          {result.paths.map((path, pathIndex) => {
-            const y = branchYs[pathIndex] ?? 560;
-            const selected = selectedPath.id === path.id;
-            const points = path.milestones.map((milestone, index) => ({ milestone, x: 270 + index * 135, y: y + Math.sin(index + pathIndex) * 18 }));
-            const pathLine = `M ${origin.x + 36} ${origin.y} C 190 ${origin.y} 195 ${y} 250 ${y} ${points.map((point) => `L ${point.x} ${point.y}`).join(" ")}`;
-            return (
-              <g key={path.id}>
-                <path d={pathLine} fill="none" stroke={path.color} strokeWidth={selected ? 7 : 4} strokeLinecap="round" opacity={selected ? 0.95 : 0.48} filter="url(#glow)" className="path-draw" />
-                <text x="195" y={y - 18} fill={path.color} fontSize="13" fontWeight="900">{path.title}</text>
-                <text x="195" y={y} fill="#cbd5e1" fontSize="11">{path.simpleMeaning}</text>
-                {points.map(({ milestone, x, y: nodeY }) => {
-                  const nodeSelected = selectedNode?.pathId === path.id && selectedNode.milestone.id === milestone.id;
-                  return (
-                    <g key={milestone.id} className="cursor-pointer" onClick={() => onSelect(path, milestone)} onMouseEnter={() => onHover({ path, milestone, x, y: nodeY })} onMouseLeave={() => onHover(null)}>
-                      <circle cx={x} cy={nodeY} r={nodeSelected ? 22 : 17} fill="#050712" stroke={path.color} strokeWidth={nodeSelected ? 5 : 3} filter="url(#glow)" className="node-pulse" />
-                      <circle cx={x} cy={nodeY} r="7" fill={path.color} />
-                      <text x={x - 16} y={nodeY + 42} fill="#e2e8f0" fontSize="12" fontWeight="900">{milestone.year}</text>
-                      <text x={x - 30} y={nodeY - 28} fill="#94a3b8" fontSize="10">{milestone.badge}</text>
-                    </g>
-                  );
-                })}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      <div className="space-y-5 overflow-y-auto p-4 pt-14 md:hidden">
-        <div className="rounded-3xl border border-cyan-300/30 bg-cyan-300/10 p-4 shadow-cyan">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-100">YOU TODAY</p>
-          <p className="mt-1 text-xl font-black">{result.userSummary.name}</p>
-          <p className="text-sm text-slate-300">{result.userSummary.goal}</p>
-        </div>
-        {mobileRows.map((path) => (
-          <div key={path.id} className="relative border-l-2 pl-5" style={{ borderColor: path.color }}>
-            <p className="font-black" style={{ color: path.color }}>{path.title}</p>
-            <p className="mb-3 text-sm text-slate-400">{path.simpleMeaning}</p>
-            {path.milestones.map((milestone) => (
-              <button key={milestone.id} onClick={() => onSelect(path, milestone)} className="mb-3 block w-full rounded-2xl border border-white/10 bg-white/[0.05] p-3 text-left">
-                <span className="text-sm font-black">{milestone.year}: {milestone.title}</span>
-                <span className="mt-1 block text-xs text-slate-400">{milestone.simpleResult}</span>
-              </button>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {hoveredNode && (
-        <div className="pointer-events-none absolute z-30 max-w-xs rounded-2xl border border-white/15 bg-black/90 p-3 text-sm shadow-glow" style={{ left: `min(${hoveredNode.x}px, calc(100% - 18rem))`, top: `${Math.max(68, hoveredNode.y - 28)}px` }}>
-          <p className="text-xs uppercase tracking-[0.18em]" style={{ color: hoveredNode.path.color }}>{hoveredNode.path.title}</p>
-          <p className="mt-1 font-black text-white">{hoveredNode.milestone.year}: {hoveredNode.milestone.title}</p>
-          <p className="mt-1 text-slate-400">{hoveredNode.milestone.simpleResult}</p>
-        </div>
-      )}
-    </section>
   );
 }
 

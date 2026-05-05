@@ -166,6 +166,12 @@ button {
   cursor: grabbing;
 }
 
+.three-life-map canvas {
+  display: block;
+  height: 100% !important;
+  width: 100% !important;
+}
+
 .path-draw {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
