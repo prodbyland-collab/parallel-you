@@ -83,20 +83,20 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
   const wild = state.wildcardsUsed[0];
   const chaos = state.chaosEvents[0];
   const memoryLine = buildMemoryLine(state);
-  const wildLine = wild ? `Then ${wild.title.toLowerCase()} changed the story in a surprising way.` : "No single miracle fixed everything. The small choices did most of the work.";
-  const chaosLine = chaos ? `Also, ${chaos.title.toLowerCase()} arrived out of nowhere and made the story more fun.` : "";
+  const wildLine = wild ? `Along the way, ${wild.title.toLowerCase()} changed the plan and forced ${name} to react.` : "There was no single magic moment. The story changed because small choices kept adding up.";
+  const chaosLine = chaos ? `The surprise moment, ${chaos.title.toLowerCase()}, did not come from nowhere. It mattered because ${name} had already started moving.` : "";
   const returnLine = state.flags.includes("returned_after_failure")
-    ? `${name} stepped away from the dream once, then came back without needing a big announcement.`
-    : `${name} kept hearing the old question, but answered it by doing something instead of only thinking about it.`;
+    ? `${name} stepped away from the dream once, but came back with a clearer idea of what the goal needed.`
+    : `${name} kept hearing the old question, "${whatIf}", but answered it by making choices instead of only thinking about it.`;
 
   return [
-    `${name} did not become ${identity.toLowerCase()} all at once.`,
-    `It happened through small moments: the tired night, the visible ${work}, and the choice to move when this question showed up again: ${whatIf}.`,
+    `${name} started with a simple wish: ${goal}.`,
+    `At first it was only a thought in a quiet room. Then it became a small action, then a visible ${work}, then a pattern of choices that either helped or slowed the dream down.`,
     wildLine,
     chaosLine,
     memoryLine,
     returnLine,
-    `By the end, ${goal} became more than a wish. It became ${outcome}, and it asked for some ${tradeoff} in return.`
+    `By the end, ${name} became a ${identity.toLowerCase()}. The goal turned into ${outcome}, but it also came with a tradeoff: ${tradeoff}.`
   ].filter(Boolean).join("\n\n");
 }
 

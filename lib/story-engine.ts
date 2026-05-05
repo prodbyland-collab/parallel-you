@@ -24,8 +24,8 @@ const sceneTemplates: SceneTemplate[] = [
     },
     miniGame: "hold",
     narration: [
-      "{name} sits in {country} with one thought that keeps coming back: {goal}.",
-      "The old question returns: {whatIf}. Tonight it feels less like regret and more like a place to begin."
+      "{name} is alone in {country}, thinking about one thing that has been waiting too long: {goal}.",
+      "The question {whatIf} still hurts a little, but tonight it turns into something useful: a reason to finally start."
     ],
     choices: [
       { id: "one-hour", text: "Make one small first move", effect: { discipline: 5, consistency: 6, creativity: 2 }, flags: ["stayed_consistent"] },
@@ -46,8 +46,8 @@ const sceneTemplates: SceneTemplate[] = [
       line: "The calm breaks when your phone lights up and tries to pull you away."
     },
     narration: [
-      "Morning arrives quietly. No one knows {name} promised to try last night.",
-      "That is how change often starts: small, private, and easy to skip."
+      "The next morning, nothing looks different. The world does not know {name} made a promise last night.",
+      "That makes the first real test simple: keep one small promise, or let the day pull everything back to normal."
     ],
     choices: [
       { id: "routine", text: "Protect one tiny habit", effect: { discipline: 6, consistency: 7 }, flags: ["stayed_consistent"] },
@@ -71,8 +71,8 @@ const sceneTemplates: SceneTemplate[] = [
     },
     miniGame: "tap-particles",
     narration: [
-      "{name} makes a rough {work}. It is not perfect, but it has heart.",
-      "Keeping it private feels safer. Sharing it makes the dream feel real."
+      "After a few small tries, {name} finally makes a rough {work}. It is not perfect, but it is real.",
+      "Now the story asks for a harder step: keep it hidden where it feels safe, or let one person see it."
     ],
     choices: [
       { id: "share", text: "Post it before you overthink", effect: { creativity: 6, risk: 5, social: 2 }, flags: ["took_big_risk"] },
@@ -88,8 +88,8 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "bedroom",
     mood: "tired",
     narration: [
-      "One week disappears into errands, tabs, and excuses. Then the next week does the same thing.",
-      "Nothing dramatic happens. That is the tricky part. The loop looks normal."
+      "A few days pass. Then a week. The first spark is still there, but normal life starts covering it again.",
+      "This is where the story can quietly shrink: not because {name} fails loudly, but because the same easy excuses keep winning."
     ],
     choices: [
       { id: "break-loop", text: "Break the pattern tonight", effect: { discipline: 7, consistency: 8 }, flags: ["returned_after_failure", "stayed_consistent"] },
@@ -111,8 +111,8 @@ const sceneTemplates: SceneTemplate[] = [
     },
     miniGame: "timed-choice",
     narration: [
-      "An {opportunity} appears at the worst possible time. It feels too soon and too public.",
-      "{name} can feel two options: stay safe, or try before feeling ready."
+      "Because of the small moves before, an {opportunity} appears earlier than expected. It feels too soon, which is exactly why it matters.",
+      "{name} has to decide whether to stay comfortable or try while still feeling unprepared."
     ],
     choices: [
       { id: "say-yes", text: "Say yes even though you are nervous", effect: { risk: 8, social: 4, consistency: -2 }, flags: ["took_big_risk"] },
@@ -128,8 +128,8 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "void",
     mood: "lost",
     narration: [
-      "The future does not yell at {name}. It just shows what has been happening.",
-      "The nights that seemed harmless have added up. The small wins have also added up."
+      "By now, the choices are starting to show. Every skipped night and every small win has left a mark.",
+      "{name} can see the pattern clearly: the future is not built by one big decision, but by what keeps getting repeated."
     ],
     choices: [
       { id: "return", text: "Come back quietly", effect: { consistency: 9, discipline: 5 }, flags: ["returned_after_failure"] },
@@ -145,8 +145,8 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "city",
     mood: "tense",
     narration: [
-      "{name}'s {work} reaches people outside the safe circle. A stranger reacts. Someone else quietly stays.",
-      "It is not a big win yet. It is just the first sign that people are paying attention."
+      "The {work} starts reaching people who do not already know {name}. A stranger reacts, and another person quietly stays to watch.",
+      "It is not fame. It is just the first sign that the work can travel further than the room where it began."
     ],
     choices: [
       { id: "own-it", text: "Stay visible", effect: { risk: 5, creativity: 6, social: 3 }, flags: ["took_big_risk"] },
@@ -174,8 +174,8 @@ const sceneTemplates: SceneTemplate[] = [
       line: "You keep saying soon. I miss when soon meant tonight."
     },
     narration: [
-      "Progress starts taking space in the calendar. Messages wait. Plans turn into maybes. Someone misses the old {name}.",
-      "Wanting more is not wrong, but it can make people feel far away."
+      "As the goal takes more space, other parts of life start to feel the change. Messages wait. Plans become maybes.",
+      "Someone misses the version of {name} who had more time, and {name} has to decide what success is allowed to cost."
     ],
     choices: [
       { id: "make-time", text: "Show up for them tonight", effect: { social: 8, consistency: -2 }, flags: ["asked_for_help"] },
@@ -196,8 +196,8 @@ const sceneTemplates: SceneTemplate[] = [
       line: "Then the moment becomes strangely funny, because even the ceiling fan sounds like it is clapping."
     },
     narration: [
-      "Your body starts saying what your calendar ignored. Focus feels heavy. Even hope needs rest.",
-      "This is where many versions of {name} confuse being tired with being done."
+      "The pressure finally reaches the body. Focus gets heavy, sleep matters more, and even hope starts asking for a break.",
+      "This does not mean the dream is over. It means {name} has to learn the difference between discipline and punishment."
     ],
     choices: [
       { id: "repair", text: "Make the goal smaller for one week", effect: { discipline: 3, consistency: 5, social: 2 }, flags: ["returned_after_failure"] },
@@ -226,8 +226,8 @@ const sceneTemplates: SceneTemplate[] = [
       rarity: "rare"
     },
     narration: [
-      "A door opens because of old effort, strange timing, and one person who remembered {name}.",
-      "It feels lucky, but also scary. Good chances can still put pressure on you."
+      "After the hard stretch, a new door opens because someone remembers the work {name} already put out.",
+      "It feels like luck, but it is also connected to every small choice before this. Now the question is whether {name} will walk through."
     ],
     choices: [
       { id: "step-through", text: "Step in before fear talks you out of it", effect: { risk: 7, luck: 4, social: 4 }, flags: ["lucky_event_seen", "took_big_risk"] },
@@ -248,8 +248,8 @@ const sceneTemplates: SceneTemplate[] = [
       line: "You are not behind. You just need a better edit."
     },
     narration: [
-      "The second failure hurts more because {name} cannot blame only bad luck this time.",
-      "Under the shame, there is a simple question: stop here, or learn from it?"
+      "Not everything goes well. One attempt falls apart, and this time {name} cannot explain it away as only bad luck.",
+      "That makes the moment painful, but also useful. The story is asking whether {name} will stop, blame the world, or learn."
     ],
     choices: [
       { id: "come-back", text: "Come back without making a speech", effect: { consistency: 8, discipline: 4 }, flags: ["returned_after_failure"] },
@@ -278,8 +278,8 @@ const sceneTemplates: SceneTemplate[] = [
       rarity: "rare"
     },
     narration: [
-      "One result finally feels real. It is not huge or final, but it is enough to quiet the mean voice for a while.",
-      "For the first time, the room does not feel like a waiting room. It feels like a place where something is being built."
+      "After coming back from the failure, one result finally feels real. It is not huge, but it proves the work can lead somewhere.",
+      "For the first time, {name} can connect the whole path: the small start, the scary share, the setback, and this proof."
     ],
     choices: [
       { id: "build-system", text: "Turn the proof into a routine", effect: { consistency: 8, discipline: 6 }, flags: ["breakthrough_seen", "stayed_consistent"] },
@@ -296,8 +296,8 @@ const sceneTemplates: SceneTemplate[] = [
     mood: "tense",
     miniGame: "drag-memory",
     narration: [
-      "The story comes down to one choice. It will not decide everything, but it shows what kind of person {name} is becoming.",
-      "{name} can protect the familiar life, or step into something uncertain."
+      "With proof behind them, {name} reaches a bigger choice. It is not about one perfect decision; it is about what kind of life to keep building.",
+      "{name} can protect what is familiar, take a bigger risk, or choose a brave path that still feels sustainable."
     ],
     choices: [
       { id: "choose-known", text: "Keep the life you know", effect: { discipline: 2, risk: -6, social: 2 } },
@@ -320,8 +320,8 @@ const sceneTemplates: SceneTemplate[] = [
       effect: { social: 5, luck: 1 }
     },
     narration: [
-      "By now, the people around {name} have changed. Some left. Some arrived late. Some stayed quietly.",
-      "{name} finally understands that every future includes other people, even the lonely-looking ones."
+      "After the big choice, {name} looks around and notices who is still close. Some people left, some arrived late, and some stayed quietly the whole time.",
+      "The goal still matters, but now {name} understands that a future feels different depending on who gets to share it."
     ],
     choices: [
       { id: "call-someone", text: "Call someone who stayed", effect: { social: 8 }, flags: ["asked_for_help"] },
@@ -350,8 +350,8 @@ const sceneTemplates: SceneTemplate[] = [
       rarity: "rare"
     },
     narration: [
-      "{name} returns to a room that looks almost the same. Same walls, different feeling.",
-      "The old what-if is still there, but it is not in charge anymore."
+      "Near the end, {name} returns to a room that looks almost like the first night. Same walls, different person.",
+      "The old question is still there, but it no longer runs the story. It has become part of the reason {name} kept going."
     ],
     choices: [
       { id: "forgive", text: "Forgive the years it took", effect: { consistency: 4, social: 2 }, flags: ["returned_after_failure"] },
@@ -367,8 +367,8 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "spotlight",
     mood: "breakthrough",
     narration: [
-      "The final scene does not explain everything. It simply shows what your choices have been building.",
-      "This is not the only life {name} could have lived. It is the one {name} chose this time."
+      "The final scene gathers everything: the first promise, the missed days, the people, the risks, the proof, and the memories collected along the way.",
+      "This is not the only life {name} could have lived. It is the one these choices created this time."
     ],
     choices: [
       { id: "see-ending", text: "See your ending", effect: {}, nextScene: "ending" }
@@ -391,8 +391,8 @@ const secretSceneTemplates: SceneTemplate[] = [
       line: "The room has not changed, but it suddenly feels harder to breathe."
     },
     narration: [
-      "{name} avoids the work so often that the pattern becomes hard to ignore.",
-      "Nothing explodes. That is what makes it easy to miss. The excuses start to feel normal."
+      "{name} has avoided the work enough times that the story stops moving forward for a moment.",
+      "Nothing dramatic happens, and that is the danger. The room feels smaller because the same choice keeps repeating."
     ],
     choices: [
       { id: "tiny-exit", text: "Do the smallest thing that helps", effect: { consistency: 7, discipline: 3 }, flags: ["returned_after_failure"] },
@@ -415,8 +415,8 @@ const secretSceneTemplates: SceneTemplate[] = [
       rarity: "secret"
     },
     narration: [
-      "Nothing dramatic happens. That is why it works.",
-      "{name} keeps repeating the small habit, and suddenly there is proof it mattered."
+      "{name} keeps doing the small habit even when it feels boring and nobody is watching.",
+      "Then the story quietly changes. There is proof now, and it came from staying with the work longer than usual."
     ],
     choices: [
       { id: "keep-quiet", text: "Keep going without announcing it", effect: { consistency: 9, discipline: 5 }, flags: ["stayed_consistent", "breakthrough_seen"] },
@@ -444,8 +444,8 @@ const secretSceneTemplates: SceneTemplate[] = [
       rarity: "secret"
     },
     narration: [
-      "It is late, which usually means bad decisions. Tonight, one risky choice feels strangely awake.",
-      "A shortcut appears. It is part opportunity, part dare, and it will not wait long."
+      "Because {name} has already taken risks, the night offers one more chance that feels bigger than the others.",
+      "It could be a mistake, or it could become the story people remember. Either way, it will change what happens next."
     ],
     choices: [
       { id: "take-shortcut", text: "Take the shortcut, knowing the risk", effect: { risk: 10, luck: 6, consistency: -2 }, flags: ["took_big_risk", "lucky_event_seen"] },
@@ -689,15 +689,15 @@ function hydrateScene(template: SceneTemplate, state: StoryRunState): StoryScene
 
 function chooseNarrationVariation(template: SceneTemplate, state: StoryRunState) {
   if (template.id === "behind-year" && state.flags.includes("avoided_work")) {
-    return "{name} starts to feel the cost of the nights that seemed harmless. The dream is not gone, but it feels farther away.";
+    return "{name} starts to feel the cost of the nights that seemed harmless. The dream is not gone, but it feels farther away because it has been waiting for action.";
   }
   if (template.id === "first-real-proof" && state.flags.includes("stayed_consistent")) {
-    return "The reward comes late, but it comes. The small repeated actions finally leave proof.";
+    return "The reward comes late, but it comes. The small repeated actions finally leave proof, and {name} can see that the boring days were not wasted.";
   }
   if (template.id === "who-stayed" && state.flags.includes("isolated_self")) {
-    return "The room is quieter than {name} expected. Success feels different when fewer people are close enough to share it.";
+    return "The room is quieter than {name} expected. Success feels different when fewer people are close enough to share it, so this moment becomes about who still matters.";
   }
-  return template.narration[(state.seed + state.choices.length + template.id.length) % template.narration.length];
+  return template.narration.join(" ");
 }
 
 function mergeFlags(current: StoryFlag[], incoming: StoryFlag[]) {
