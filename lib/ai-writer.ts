@@ -1,5 +1,5 @@
 import { buildConsequencePrompt, buildEndingPrompt, buildRewritePrompt, buildScenePrompt } from "@/lib/ai-prompts";
-import { cleanAIText, isTooSimilar, sanitizeLines } from "@/lib/ai-safety";
+import { cleanAIText, isTooSimilar, sanitizeLines, scoreHumanWriting } from "@/lib/ai-safety";
 import { generateEnding } from "@/lib/ending-generator";
 import { seededRandom } from "@/lib/random-engine";
 import type { StoryMemory } from "@/lib/story-memory";
@@ -38,10 +38,10 @@ export async function callAIWriter(prompt: string) {
         },
         body: JSON.stringify({
           model,
-          temperature: 0.85,
+          temperature: 1,
           response_format: { type: "json_object" },
           messages: [
-            { role: "system", content: "You write grounded interactive fiction as strict JSON only." },
+            { role: "system", content: "You are a severe editor for grounded interactive fiction. Write like a real person noticed small details. Strict JSON only." },
             { role: "user", content: prompt }
           ]
         })
@@ -72,7 +72,7 @@ export async function callAIWriter(prompt: string) {
 export async function generateNextSceneWithAI(memory: StoryMemory, fallbackScene: StoryScene): Promise<StoryScene> {
   const prompt = buildScenePrompt(memory);
   const draft = await askForJson<AISceneDraft>(prompt, (value) => normalizeSceneDraft(value, memory, fallbackScene));
-  const checkedDraft = draft && hasRepeatedSceneText(draft, memory)
+  const checkedDraft = draft && (hasRepeatedSceneText(draft, memory) || scoreHumanWriting([draft.sceneTitle, ...draft.narrationLines, ...draft.choices.map((choice) => choice.text)]) < 2)
     ? await askForJson<AISceneDraft>(`${prompt}\n\n${buildRewritePrompt(JSON.stringify(draft), memory.previousGeneratedText)}`, (value) => normalizeSceneDraft(value, memory, fallbackScene))
     : draft;
 
@@ -110,13 +110,13 @@ export async function generateConsequenceWithAI(choice: StoryChoice, memory: Sto
   const fallback = localConsequence(choice, memory);
   const draft = await askForJson<AIConsequenceDraft>(buildConsequencePrompt(choice, memory), normalizeConsequenceDraft);
   if (!draft) return fallback;
-  return isTooSimilar(draft.consequenceLines.join(" "), memory.previousGeneratedText) ? fallback : draft;
+  return isTooSimilar(draft.consequenceLines.join(" "), memory.previousGeneratedText) || scoreHumanWriting(draft.consequenceLines) < 1 ? fallback : draft;
 }
 
 export async function generateEndingWithAI(memory: StoryMemory, fallbackState: Parameters<typeof generateEnding>[0]) {
   const fallback = generateEnding(fallbackState);
   const draft = await askForJson<AIEndingDraft>(buildEndingPrompt(memory), normalizeEndingDraft);
-  if (!draft || isTooSimilar(`${draft.endingTitle} ${draft.finalLine}`, [...memory.previousEndingTitles, ...memory.previousFinalLines])) return fallback;
+  if (!draft || isTooSimilar(`${draft.endingTitle} ${draft.finalLine}`, [...memory.previousEndingTitles, ...memory.previousFinalLines]) || scoreHumanWriting([draft.whatHappened, draft.whatItCost, draft.memoryCallback, draft.finalLine]) < 1) return fallback;
 
   return {
     ...fallback,
@@ -124,7 +124,11 @@ export async function generateEndingWithAI(memory: StoryMemory, fallbackState: P
     identity: draft.identity,
     outcome: draft.whatHappened,
     tradeoff: draft.whatItCost,
-    reflection: [draft.whatHappened, draft.whatItCost, draft.memoryCallback].filter(Boolean).join("\n\n"),
+    reflection: [
+      draft.whatHappened,
+      draft.whatItCost,
+      draft.memoryCallback
+    ].filter(Boolean).join("\n\n"),
     finalLine: draft.finalLine,
     finalObject: draft.finalSceneObject,
     quote: draft.finalLine
@@ -168,7 +172,7 @@ function normalizeChoiceDraft(value: unknown, index: number) {
   const choice = value as Partial<AISceneDraft["choices"][number]>;
   if (!choice.text) return null;
   return {
-    text: cleanAIText(choice.text).slice(0, 90),
+    text: makeChoiceSpecific(cleanAIText(choice.text)).slice(0, 90),
     effect: choice.effect ?? {},
     flags: choice.flags ?? [],
     consequenceHint: cleanAIText(choice.consequenceHint ?? "This changes the next room."),
@@ -232,4 +236,14 @@ function localConsequence(choice: StoryChoice, memory: StoryMemory): AIConsequen
     memoryCallback: choice.consequenceHint,
     delayedFlag: choice.delayedCallbackPossible ? choice.flags?.[0] : undefined
   };
+}
+
+function makeChoiceSpecific(text: string) {
+  const vague = ["choose", "success", "destiny", "dream", "potential", "future"];
+  const lower = text.toLowerCase();
+  if (!vague.some((word) => lower.includes(word))) return text;
+  if (lower.includes("nothing")) return "Do nothing and let the tab stay open";
+  if (lower.includes("send")) return "Send the rough version before fixing it again";
+  if (lower.includes("work") || lower.includes("discipline")) return "Fix one small part before checking your phone";
+  return "Open it for five minutes";
 }

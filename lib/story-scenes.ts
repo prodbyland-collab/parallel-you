@@ -1,4 +1,4 @@
-import type { StoryChoice, StoryScene } from "@/lib/story-types";
+﻿import type { StoryChoice, StoryScene } from "@/lib/story-types";
 
 export type SceneTemplate = Omit<StoryScene, "narration" | "choices"> & {
   narration: string[];
@@ -25,7 +25,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     narration: [
       "The room is quiet.",
       "Your phone is close. Your goal is closer.",
-      "You still don’t move."
+      "You still don't move."
     ],
     choices: [
       { id: "open_project", text: "Open the thing you keep avoiding", effect: { discipline: 3, consistency: 4, creativity: 1 }, flags: ["stayed_consistent"] },
@@ -99,7 +99,7 @@ export const baseStoryScenes: SceneTemplate[] = [
       kind: "late_night"
     },
     narration: [
-      "It’s late.",
+      "It's late.",
       "No one is watching.",
       "This is usually where you disappear."
     ],
@@ -137,7 +137,7 @@ export const baseStoryScenes: SceneTemplate[] = [
       kind: "thinking"
     },
     narration: [
-      "Today doesn’t care about your plan.",
+      "Today doesn't care about your plan.",
       "Everything feels heavier than it should."
     ],
     choices: [
@@ -243,7 +243,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     year: 2029,
     environment: "bedroom",
     mood: "hopeful",
-    narration: ["You left it for a while.", "But it didn’t leave you."],
+    narration: ["You left it for a while.", "But it didn't leave you."],
     choices: [
       { id: "come_back_quietly", text: "Come back without announcing it", effect: { consistency: 6, discipline: 3, confidence: 2 }, flags: ["returned_after_failure"] },
       { id: "make_big_return", text: "Make a big plan again", effect: { risk: 2, consistency: -2 }, flags: ["started_over_again"] },
@@ -311,7 +311,7 @@ export const baseStoryScenes: SceneTemplate[] = [
     noChoiceMoment: true,
     narration: [
       "Some things changed.",
-      "Some things didn’t.",
+      "Some things didn't.",
       "You can tell which ones were yours."
     ],
     choices: [

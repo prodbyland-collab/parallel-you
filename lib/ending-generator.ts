@@ -1,4 +1,4 @@
-import { firstName, goalLanguage } from "@/lib/personalization";
+﻿import { firstName, goalLanguage } from "@/lib/personalization";
 import { createStorySignature } from "@/lib/story-signature";
 import type { EndingResult, StoryRunState } from "@/lib/story-types";
 
@@ -60,7 +60,7 @@ function pickTradeoff(state: StoryRunState) {
   if (state.flags.includes("ignored_message") || state.traits.social < 42) return "some messages stayed unanswered";
   if (state.flags.includes("burned_out")) return "your body asked for more than ambition";
   if (state.flags.includes("took_big_risk")) return "peace got interrupted";
-  if (state.flags.includes("did_nothing")) return "time moved even when you didn’t";
+  if (state.flags.includes("did_nothing")) return "time moved even when you didn't";
   return "comfort became harder to trust";
 }
 
@@ -88,10 +88,10 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
     `The final scene keeps one thing in frame: the ${finalObject}.`
   ];
 
-  if (state.flags.includes("ignored_message")) lines.splice(5, 0, "You remember the message you didn’t answer.");
+  if (state.flags.includes("ignored_message")) lines.splice(5, 0, "You remember the message you didn't answer.");
   if (countChoiceIds(state, ["do_nothing", "skip_today", "repeat_pattern", "scroll_late"]) >= 2) lines.splice(5, 0, "You did nothing more than once. It still shaped the room.");
   if (state.flags.includes("sent_unfinished")) lines.splice(5, 0, "You sent it before it felt safe.");
-  if (state.flags.includes("stayed_consistent")) lines.splice(5, 0, "It wasn’t dramatic. It just started to add up.");
+  if (state.flags.includes("stayed_consistent")) lines.splice(5, 0, "It wasn't dramatic. It just started to add up.");
   if (state.replayCount > 0) lines.push("You were here again. The ending noticed.");
 
   return lines.join("\n\n");

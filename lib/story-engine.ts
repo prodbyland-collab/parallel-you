@@ -1,4 +1,4 @@
-import { generateChoices } from "@/lib/choice-generator";
+﻿import { generateChoices } from "@/lib/choice-generator";
 import { normalizeProfile, personalizeScene } from "@/lib/personalization";
 import { applyTraitEffect, createInitialTraits, createSeed, maybeCreateWildCard, pickWeighted, seededRandom, selectSceneVariation } from "@/lib/random-engine";
 import { baseStoryScenes, type SceneTemplate } from "@/lib/story-scenes";
@@ -233,13 +233,13 @@ function addDelayedCallbacks(narration: string, state: StoryRunState, sceneId: s
   const didNothingCount = countChoiceIds(state, ["do_nothing", "scroll_late", "skip_today", "repeat_pattern"]);
 
   if (sceneId === "old_pattern" && state.flags.includes("ignored_message")) {
-    lines.push("You remember the message you didn’t answer.");
+    lines.push("You remember the message you didn't answer.");
   }
   if (sceneId === "pressure_scene" && didNothingCount >= 2) {
     lines.push("You did nothing again. It still counted.");
   }
   if (sceneId === "return_scene" && state.flags.includes("stayed_consistent")) {
-    lines.push("It wasn’t dramatic. It just started to add up.");
+    lines.push("It wasn't dramatic. It just started to add up.");
   }
   if (sceneId === "someone_notices" && state.flags.includes("sent_unfinished")) {
     lines.push("You sent it before it felt safe.");
