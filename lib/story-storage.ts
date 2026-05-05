@@ -25,6 +25,10 @@ export function loadStoryState() {
       secretScenesFound: parsed.secretScenesFound ?? [],
       miniGamesCompleted: parsed.miniGamesCompleted ?? [],
       rareMomentsTriggered: parsed.rareMomentsTriggered ?? [],
+      missedMoments: parsed.missedMoments ?? [],
+      relationshipMoments: parsed.relationshipMoments ?? [],
+      emotionalConsequences: parsed.emotionalConsequences ?? [],
+      generatedTextHistory: parsed.generatedTextHistory ?? [],
       storySignature: parsed.storySignature ?? "",
       replayCount: parsed.replayCount ?? getStorySignatures().length
     } satisfies StoryRunState;

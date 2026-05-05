@@ -83,6 +83,8 @@ export type StoryChoice = {
   flags?: StoryFlag[];
   nextScene?: string;
   auto?: boolean;
+  consequenceHint?: string;
+  delayedCallbackPossible?: boolean;
 };
 
 export type StoryScene = {
@@ -188,9 +190,47 @@ export type StoryRunState = {
   secretScenesFound: SecretSceneRecord[];
   miniGamesCompleted: string[];
   rareMomentsTriggered: MovieMoment[];
+  missedMoments: string[];
+  relationshipMoments: string[];
+  emotionalConsequences: string[];
+  generatedTextHistory: string[];
   storySignature: string;
   replayCount: number;
   seed: number;
+};
+
+export type AIChoiceDraft = {
+  text: string;
+  effect: ChoiceEffect;
+  flags: StoryFlag[];
+  consequenceHint: string;
+  delayedCallbackPossible: boolean;
+};
+
+export type AISceneDraft = {
+  sceneTitle: string;
+  narrationLines: string[];
+  firstPersonCutType?: FirstPersonCut["kind"];
+  environment: StoryEnvironment;
+  mood: StoryMood;
+  choices: AIChoiceDraft[];
+};
+
+export type AIConsequenceDraft = {
+  consequenceLines: string[];
+  updatedMood: StoryMood;
+  memoryCallback?: string;
+  delayedFlag?: StoryFlag;
+};
+
+export type AIEndingDraft = {
+  endingTitle: string;
+  identity: string;
+  whatHappened: string;
+  whatItCost: string;
+  memoryCallback: string;
+  finalLine: string;
+  finalSceneObject: string;
 };
 
 export type EndingResult = {

@@ -66,6 +66,10 @@ export function createInitialRun(profile: PlayerProfile): StoryRunState {
     secretScenesFound: [],
     miniGamesCompleted: [],
     rareMomentsTriggered: [],
+    missedMoments: [],
+    relationshipMoments: [],
+    emotionalConsequences: [],
+    generatedTextHistory: [],
     storySignature: "",
     replayCount: 0,
     seed
@@ -104,6 +108,9 @@ export function chooseSceneOption(state: StoryRunState, choice: StoryChoice): St
     flags: mergeFlags(state.flags, choice.flags ?? []),
     choices,
     recentChoiceTexts: [...(state.recentChoiceTexts ?? []), choice.text].slice(-12),
+    missedMoments: updateMissedMoments(state, scene, choice),
+    emotionalConsequences: updateEmotionalConsequences(state, choice),
+    generatedTextHistory: updateGeneratedTextHistory(state, scene, choice),
     currentSceneId: nextId,
     sceneHistory: nextId === "ending" ? state.sceneHistory : appendUnique(state.sceneHistory, nextId)
   };
@@ -120,6 +127,16 @@ export function chooseSceneOption(state: StoryRunState, choice: StoryChoice): St
     };
   }
 
+  return { ...nextState, storySignature: createStorySignature(nextState) };
+}
+
+export function applyGeneratedConsequence(state: StoryRunState, lines: string[], delayedFlag?: StoryFlag): StoryRunState {
+  const nextState = {
+    ...state,
+    flags: delayedFlag ? mergeFlags(state.flags, [delayedFlag]) : state.flags,
+    emotionalConsequences: [...(state.emotionalConsequences ?? []), lines.join(" ")].slice(-12),
+    generatedTextHistory: [...(state.generatedTextHistory ?? []), ...lines].slice(-80)
+  };
   return { ...nextState, storySignature: createStorySignature(nextState) };
 }
 
@@ -274,4 +291,30 @@ function mergeFlags(current: StoryFlag[], incoming: StoryFlag[]) {
 
 function appendUnique(items: string[], item: string) {
   return items.includes(item) ? items : [...items, item];
+}
+
+function updateMissedMoments(state: StoryRunState, scene: StoryScene, choice: StoryChoice) {
+  const missed = [...(state.missedMoments ?? [])];
+  const rejected = scene.choices.filter((item) => item.id !== choice.id).map((item) => item.text).slice(0, 2);
+  if (choice.flags?.some((flag) => ["ignored_message", "ignored_opportunity", "did_nothing", "avoided_work"].includes(flag))) {
+    missed.push(`In ${scene.title}, you chose "${choice.text}" instead of ${rejected.join(" / ")}.`);
+  }
+  return missed.slice(-12);
+}
+
+function updateEmotionalConsequences(state: StoryRunState, choice: StoryChoice) {
+  const hint = choice.consequenceHint || consequenceFromFlags(choice);
+  return hint ? [...(state.emotionalConsequences ?? []), hint].slice(-12) : state.emotionalConsequences ?? [];
+}
+
+function updateGeneratedTextHistory(state: StoryRunState, scene: StoryScene, choice: StoryChoice) {
+  return [...(state.generatedTextHistory ?? []), scene.title, scene.narration, choice.text].slice(-80);
+}
+
+function consequenceFromFlags(choice: StoryChoice) {
+  if (choice.flags?.includes("ignored_message")) return "The unanswered message stayed in the room.";
+  if (choice.flags?.includes("did_nothing")) return "Doing nothing still changed the day.";
+  if (choice.flags?.includes("sent_unfinished")) return "The rough version was no longer private.";
+  if (choice.flags?.includes("stayed_consistent")) return "The small work started to stack quietly.";
+  return "";
 }
