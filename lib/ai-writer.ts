@@ -6,20 +6,27 @@ import type { StoryMemory } from "@/lib/story-memory";
 import type { AIConsequenceDraft, AIEndingDraft, AISceneDraft, StoryChoice, StoryScene } from "@/lib/story-types";
 
 type AIProvider = "openai" | "generic" | "none";
+const CLIENT_AI_TIMEOUT_MS = 9000;
+const SERVER_AI_TIMEOUT_MS = 14000;
 
 export async function callAIWriter(prompt: string) {
   if (typeof window !== "undefined") {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), CLIENT_AI_TIMEOUT_MS);
     try {
       const response = await fetch("/api/ai-writer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt }),
+        signal: controller.signal
       });
       if (!response.ok) return null;
       const data = await response.json() as { text?: string };
       return data.text ?? null;
     } catch {
       return null;
+    } finally {
+      window.clearTimeout(timeout);
     }
   }
 
@@ -29,6 +36,8 @@ export async function callAIWriter(prompt: string) {
   if (provider === "none" || !key) return null;
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SERVER_AI_TIMEOUT_MS);
     if (provider === "openai") {
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -44,23 +53,30 @@ export async function callAIWriter(prompt: string) {
             { role: "system", content: "You are a severe editor for grounded interactive fiction. Write connected scenes with plainspoken wit, concrete details, and strict cause-and-effect. Strict JSON only." },
             { role: "user", content: prompt }
           ]
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       if (!response.ok) return null;
       const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
       return data.choices?.[0]?.message?.content ?? null;
     }
 
     const endpoint = process.env.AI_PROVIDER_URL;
+    clearTimeout(timeout);
     if (!endpoint) return null;
+    const genericController = new AbortController();
+    const genericTimeout = setTimeout(() => genericController.abort(), SERVER_AI_TIMEOUT_MS);
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${key}`
       },
-      body: JSON.stringify({ model, prompt })
+      body: JSON.stringify({ model, prompt }),
+      signal: genericController.signal
     });
+    clearTimeout(genericTimeout);
     if (!response.ok) return null;
     const data = await response.json() as { text?: string; content?: string };
     return data.text ?? data.content ?? null;

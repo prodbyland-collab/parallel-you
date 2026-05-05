@@ -41,7 +41,7 @@ export default function StoryPage() {
   }, [router]);
 
   const baseScene = useMemo(() => state ? getScene(state) : null, [state]);
-  const scene = baseScene && generatedScene?.id === baseScene.id ? generatedScene : null;
+  const scene = baseScene && generatedScene?.id === baseScene.id ? generatedScene : sceneLoading ? null : baseScene;
   const allScenes = useMemo(() => state ? getAllScenes(state) : [], [state]);
   const progressIndex = state ? Math.max(0, allScenes.findIndex((item) => item.id === state.currentSceneId)) : 0;
 
@@ -51,18 +51,30 @@ export default function StoryPage() {
     setGeneratedScene(null);
     setChoicesVisible(false);
     setSceneLoading(true);
+    const fallbackTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      setGeneratedScene(baseScene);
+      setSceneLoading(false);
+    }, 9000);
     const adaptiveState = toStoryState(state, getStoryTextHistory());
     directNextStep(adaptiveState).then(async (decision) => {
       if (cancelled) return;
       setDirectorDecision(decision);
       const nextScene = await generateAdaptiveScene(adaptiveState, decision);
       if (cancelled) return;
+      window.clearTimeout(fallbackTimer);
       setGeneratedScene(nextScene);
       saveStoryTextHistory([nextScene.title, nextScene.narration, ...nextScene.choices.map((choice) => choice.text)]);
+      setSceneLoading(false);
+    }).catch(() => {
+      if (cancelled) return;
+      window.clearTimeout(fallbackTimer);
+      setGeneratedScene(baseScene);
       setSceneLoading(false);
     });
     return () => {
       cancelled = true;
+      window.clearTimeout(fallbackTimer);
     };
   }, [allScenes, baseScene, state]);
 
