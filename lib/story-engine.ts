@@ -1,5 +1,7 @@
 import { applyTraitEffect, createInitialTraits, createSeed, maybeCreateWildCard, pickWeighted, seededRandom } from "@/lib/random-engine";
+import { generateSceneChoices } from "@/lib/choice-generator";
 import { normalizeProfile, personalizeScene } from "@/lib/personalization";
+import { createStorySignature } from "@/lib/story-signature";
 import type { ChaosEvent, ChoiceRecord, MemoryObject, MovieMoment, PlayerProfile, SecretSceneRecord, StoryChoice, StoryFlag, StoryRunState, StoryScene } from "@/lib/story-types";
 
 type SceneTemplate = Omit<StoryScene, "narration" | "choices"> & {
@@ -87,6 +89,13 @@ const sceneTemplates: SceneTemplate[] = [
     year: 2026,
     environment: "bedroom",
     mood: "tired",
+    noChoiceMoment: true,
+    firstPersonCut: {
+      id: "opened-and-closed",
+      title: "You opened it... then closed it again.",
+      detail: "The cursor blinked for a long time.",
+      kind: "screen"
+    },
     narration: [
       "A few days pass. Then a week. The first spark is still there, but normal life starts covering it again.",
       "This is where the story can quietly shrink: not because {name} fails loudly, but because the same easy excuses keep winning."
@@ -127,6 +136,12 @@ const sceneTemplates: SceneTemplate[] = [
     year: 2027,
     environment: "void",
     mood: "lost",
+    firstPersonCut: {
+      id: "walking-alone",
+      title: "You walked without music.",
+      detail: "For once, there was nothing to distract you.",
+      kind: "walk"
+    },
     narration: [
       "By now, the choices are starting to show. Every skipped night and every small win has left a mark.",
       "{name} can see the pattern clearly: the future is not built by one big decision, but by what keeps getting repeated."
@@ -161,6 +176,12 @@ const sceneTemplates: SceneTemplate[] = [
     year: 2028,
     environment: "bedroom",
     mood: "tired",
+    firstPersonCut: {
+      id: "message-read",
+      title: "You read the message twice.",
+      detail: "Then you put the phone face down.",
+      kind: "message"
+    },
     memoryObject: {
       id: "message-draft",
       name: "Message draft",
@@ -336,6 +357,7 @@ const sceneTemplates: SceneTemplate[] = [
     year: 2031,
     environment: "void",
     mood: "focused",
+    noChoiceMoment: true,
     memoryObject: {
       id: "alarm-clock",
       name: "Alarm clock",
@@ -515,6 +537,8 @@ export function createInitialRun(profile: PlayerProfile): StoryRunState {
     secretScenesFound: [],
     miniGamesCompleted: [],
     rareMomentsTriggered: [],
+    storySignature: "",
+    replayCount: 0,
     seed
   };
 }
@@ -555,6 +579,7 @@ export function chooseSceneOption(state: StoryRunState, choice: StoryChoice): St
   };
 
   nextState = recordSceneDiscoveries(nextState, nextId);
+  nextState = { ...nextState, storySignature: createStorySignature(nextState) };
 
   const wildcard = maybeCreateWildCard(nextState, choices.length);
   if (wildcard) {
@@ -677,11 +702,15 @@ function recordSceneDiscoveries(state: StoryRunState, sceneId: string) {
 
 function hydrateScene(template: SceneTemplate, state: StoryRunState): StoryScene {
   const narration = chooseNarrationVariation(template, state);
-  return personalizeScene({
+  const personalized = personalizeScene({
     ...template,
     narration,
     choices: template.choices
   }, state.profile);
+  return {
+    ...personalized,
+    choices: generateSceneChoices(personalized, state)
+  };
 }
 
 function chooseNarrationVariation(template: SceneTemplate, state: StoryRunState) {

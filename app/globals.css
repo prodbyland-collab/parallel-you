@@ -263,6 +263,26 @@ button {
   animation: intro-step-in 420ms ease both;
 }
 
+.opening-black {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #000;
+  transition: opacity 900ms ease;
+}
+
+.opening-line {
+  max-width: 80vw;
+  text-align: center;
+  color: rgb(248, 250, 252);
+  font-size: clamp(1.7rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  animation: opening-line 1600ms ease both;
+}
+
 .cinema-control {
   display: grid;
   min-height: 2.7rem;
@@ -721,6 +741,101 @@ button {
   opacity: 0;
 }
 
+.first-person-cut {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  transition: opacity 420ms ease;
+}
+
+.first-person-frame {
+  position: relative;
+  height: min(52vh, 26rem);
+  width: min(82vw, 42rem);
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.1), transparent 15rem),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(0, 0, 0, 0.94));
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8), 0 30px 90px rgba(0, 0, 0, 0.45);
+  animation: first-person-drift 4.8s ease-in-out infinite;
+}
+
+.first-person-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 48%, transparent 0 40%, rgba(0, 0, 0, 0.55) 76%);
+}
+
+.first-person-frame p,
+.first-person-frame small {
+  position: absolute;
+  left: 2rem;
+  right: 2rem;
+  z-index: 2;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.8);
+}
+
+.first-person-frame p {
+  bottom: 4.2rem;
+  font-size: clamp(1.4rem, 4vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.first-person-frame small {
+  bottom: 2.2rem;
+  color: rgb(203, 213, 225);
+  font-size: 0.95rem;
+}
+
+.first-person-screen {
+  position: absolute;
+  left: 18%;
+  top: 20%;
+  height: 38%;
+  width: 54%;
+  border-radius: 0.5rem;
+  background: rgba(191, 219, 254, 0.12);
+  box-shadow: 0 0 55px rgba(191, 219, 254, 0.12);
+}
+
+.first-person-phone {
+  position: absolute;
+  right: 18%;
+  top: 32%;
+  height: 4rem;
+  width: 2.1rem;
+  border-radius: 0.48rem;
+  background: rgba(226, 232, 240, 0.14);
+  animation: phone-glow 5s ease-in-out infinite;
+}
+
+.first-person-rain {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(105deg, transparent 0 48%, rgba(226, 232, 240, 0.12) 49%, transparent 51%);
+  background-size: 20px 36px;
+  opacity: 0.22;
+  animation: rain-window 4s linear infinite;
+}
+
+.first-person-message .first-person-screen,
+.first-person-walk .first-person-screen,
+.first-person-still .first-person-phone {
+  opacity: 0;
+}
+
+.first-person-walk .first-person-rain {
+  opacity: 0.1;
+}
+
 @media (max-width: 768px) {
   .letterbox {
     height: 3.25rem;
@@ -888,6 +1003,27 @@ button {
   }
 }
 
+@keyframes opening-line {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(8px);
+  }
+
+  18%,
+  78% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-6px);
+  }
+}
+
 @keyframes curtain-move {
   0%,
   100% {
@@ -1044,6 +1180,17 @@ button {
 
   to {
     transform: translate3d(38px, -28px, 0);
+  }
+}
+
+@keyframes first-person-drift {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: scale(1.015) translate3d(0.2rem, -0.15rem, 0);
   }
 }
 

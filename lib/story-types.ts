@@ -73,6 +73,7 @@ export type StoryChoice = {
   effect: ChoiceEffect;
   flags?: StoryFlag[];
   nextScene?: string;
+  auto?: boolean;
 };
 
 export type StoryScene = {
@@ -90,6 +91,15 @@ export type StoryScene = {
   relationshipMoment?: RelationshipMoment;
   moodShift?: MoodShift;
   movieMoment?: MovieMoment;
+  firstPersonCut?: FirstPersonCut;
+  noChoiceMoment?: boolean;
+};
+
+export type FirstPersonCut = {
+  id: string;
+  title: string;
+  detail: string;
+  kind: "screen" | "message" | "walk" | "still";
 };
 
 export type WildCardEvent = {
@@ -168,6 +178,8 @@ export type StoryRunState = {
   secretScenesFound: SecretSceneRecord[];
   miniGamesCompleted: string[];
   rareMomentsTriggered: MovieMoment[];
+  storySignature: string;
+  replayCount: number;
   seed: number;
 };
 
@@ -185,6 +197,8 @@ export type EndingResult = {
   memories: MemoryObject[];
   secretScenesFound: SecretSceneRecord[];
   rareMomentsTriggered: MovieMoment[];
+  signature: string;
+  isRepeatShape: boolean;
   environment: StoryEnvironment;
   mood: StoryMood;
 };

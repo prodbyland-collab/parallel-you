@@ -1,4 +1,5 @@
 import { firstName, goalLanguage } from "@/lib/personalization";
+import { createStorySignature } from "@/lib/story-signature";
 import type { EndingResult, StoryRunState } from "@/lib/story-types";
 
 export function generateEnding(state: StoryRunState): EndingResult {
@@ -13,6 +14,8 @@ export function generateEnding(state: StoryRunState): EndingResult {
   const environment = traits.creativity > 72 ? "studio" : traits.risk > 72 ? "city" : traits.consistency > 70 ? "sunrise" : flags.has("burned_out") ? "void" : "spotlight";
   const mood = flags.has("breakthrough_seen") || traits.consistency > 76 ? "breakthrough" : flags.has("burned_out") ? "tired" : traits.risk > 72 ? "tense" : "hopeful";
   const discoveredCount = getDiscoveredCount(state);
+  const signature = state.storySignature || createStorySignature(state);
+  const isRepeatShape = state.replayCount > 0;
 
   return {
     title: pickEndingTitle(state),
@@ -21,15 +24,17 @@ export function generateEnding(state: StoryRunState): EndingResult {
     tradeoff,
     environment,
     mood,
-    reflection: buildReflection(name, state, identity, outcome, tradeoff, language.work),
-    finalLine: pickFinalLine(state),
+    reflection: buildReflection(name, state, identity, outcome, tradeoff, language.work, isRepeatShape),
+    finalLine: pickFinalLine(state, isRepeatShape),
     hints: buildHints(state),
     quote: pickShareQuote(state),
     discoveredCount,
     totalMoments: 18,
     memories: state.memories,
     secretScenesFound: state.secretScenesFound,
-    rareMomentsTriggered: state.rareMomentsTriggered
+    rareMomentsTriggered: state.rareMomentsTriggered,
+    signature,
+    isRepeatShape
   };
 }
 
@@ -77,12 +82,13 @@ function pickTradeoff(state: StoryRunState) {
   return "comfort";
 }
 
-function buildReflection(name: string, state: StoryRunState, identity: string, outcome: string, tradeoff: string, work: string) {
+function buildReflection(name: string, state: StoryRunState, identity: string, outcome: string, tradeoff: string, work: string, isRepeatShape: boolean) {
   const goal = state.profile.goal;
   const whatIf = state.profile.whatIf;
   const wild = state.wildcardsUsed[0];
   const chaos = state.chaosEvents[0];
   const memoryLine = buildMemoryLine(state);
+  const repeatLine = isRepeatShape ? "Some of this felt familiar. That changed the ending. The story looked for a quieter route through the same old pattern." : "";
   const wildLine = wild ? `Along the way, ${wild.title.toLowerCase()} changed the plan and forced ${name} to react.` : "There was no single magic moment. The story changed because small choices kept adding up.";
   const chaosLine = chaos ? `The surprise moment, ${chaos.title.toLowerCase()}, did not come from nowhere. It mattered because ${name} had already started moving.` : "";
   const returnLine = state.flags.includes("returned_after_failure")
@@ -92,6 +98,7 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
   return [
     `${name} started with a simple wish: ${goal}.`,
     `Before the story began, this was already true: ${state.profile.doneSoFar}. Then it became a small action, then a visible ${work}, then a pattern of choices that either helped or slowed the dream down.`,
+    repeatLine,
     wildLine,
     chaosLine,
     memoryLine,
@@ -100,7 +107,8 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
   ].filter(Boolean).join("\n\n");
 }
 
-function pickFinalLine(state: StoryRunState) {
+function pickFinalLine(state: StoryRunState, isRepeatShape = false) {
+  if (isRepeatShape) return "You were here again. This time, one small thing changed.";
   if (state.flags.includes("stayed_consistent")) return "Your life did not change in one big moment. It changed because you kept showing up.";
   if (state.flags.includes("took_big_risk")) return "The future did not open because you felt ready. It opened because you moved anyway.";
   if (state.flags.includes("returned_after_failure")) return "The version of you that came back became stronger than the version that never fell.";

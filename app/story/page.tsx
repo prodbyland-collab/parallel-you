@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CinematicStoryScene } from "@/components/story/CinematicStoryScene";
 import { ChoicePanel } from "@/components/story/ChoicePanel";
+import { FirstPersonCut } from "@/components/story/FirstPersonCut";
 import { FunLayer } from "@/components/story/FunLayer";
 import { Letterbox } from "@/components/story/Letterbox";
 import { SceneProgress } from "@/components/story/SceneProgress";
 import { SubtitleNarration } from "@/components/story/SubtitleNarration";
 import { generateEnding } from "@/lib/ending-generator";
 import { chooseSceneOption, collectMemoryObject, completeMiniGame, getAllScenes, getScene, isEnding, triggerChaosEvent } from "@/lib/story-engine";
-import { loadStoryState, saveEnding, saveStoryState } from "@/lib/story-storage";
+import { hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState } from "@/lib/story-storage";
 import type { MemoryObject, StoryChoice, StoryRunState } from "@/lib/story-types";
 
 export default function StoryPage() {
@@ -39,10 +40,10 @@ export default function StoryPage() {
   const wildcard = useMemo(() => state?.wildcardsUsed[state.wildcardsUsed.length - 1], [state]);
   const latestChaos = useMemo(() => state?.chaosEvents[state.chaosEvents.length - 1], [state]);
 
-  const updateRunState = (next: StoryRunState) => {
+  const updateRunState = useCallback((next: StoryRunState) => {
     saveStoryState(next);
     setState(next);
-  };
+  }, []);
 
   const useChaos = () => {
     if (!state || state.chaosUsed || transitioning) return;
@@ -59,23 +60,33 @@ export default function StoryPage() {
     updateRunState(completeMiniGame(state, miniGameId));
   };
 
-  const choose = (choice: StoryChoice) => {
+  const choose = useCallback((choice: StoryChoice) => {
     if (!state || transitioning) return;
     setChoicesVisible(false);
     setTransitioning(true);
     window.setTimeout(() => {
       const next = chooseSceneOption(state, choice);
       if (isEnding(next)) {
-        const ending = generateEnding(next);
-        saveStoryState(next);
+        const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
+        const ending = generateEnding(finalState);
+        saveStoryState(finalState);
         saveEnding(ending);
+        saveStorySignature(ending.signature);
         router.push("/ending");
         return;
       }
       updateRunState(next);
       setTransitioning(false);
     }, 900);
-  };
+  }, [router, state, transitioning, updateRunState]);
+
+  useEffect(() => {
+    if (!scene || !state || transitioning || !choicesVisible) return;
+    const autoChoice = scene.choices.find((choice) => choice.auto);
+    if (!autoChoice) return;
+    const timer = window.setTimeout(() => choose(autoChoice), 1300);
+    return () => window.clearTimeout(timer);
+  }, [choose, choicesVisible, scene, state, transitioning]);
 
   if (!state || !scene) {
     return (
@@ -88,6 +99,7 @@ export default function StoryPage() {
   return (
     <main className="relative h-screen overflow-hidden bg-[#03040a]">
       <CinematicStoryScene scene={scene} traits={state.traits} />
+      <FirstPersonCut cut={scene.firstPersonCut} visible={transitioning} />
       <div className={`absolute inset-0 z-20 bg-black transition-opacity duration-700 ${transitioning ? "opacity-80" : "pointer-events-none opacity-0"}`} />
       <Letterbox />
 
