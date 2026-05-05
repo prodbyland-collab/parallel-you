@@ -21,13 +21,23 @@ export type LifeScores = {
 export type MilestoneCategory = "money" | "health" | "love" | "career" | "creativity" | "mindset";
 
 export type LifeMilestone = {
+  id: string;
   year: number;
   dateLabel: string;
   title: string;
   description: string;
   category: MilestoneCategory;
   impactScore: number;
+  statsChange: {
+    money: number;
+    health: number;
+    relationships: number;
+    creativity: number;
+    happiness: number;
+  };
   emotionalState: string;
+  thought: string;
+  isMajorEvent: boolean;
   moneyChange: string;
   relationshipChange: string;
   healthChange: string;
@@ -75,18 +85,45 @@ const milestone = (
   healthChange: string,
   creativityChange: string
 ): LifeMilestone => ({
+  id: `${year}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
   year,
   dateLabel: `${year}`,
   title,
   description,
   category,
   impactScore: clamp(impactScore, 1, 100),
+  statsChange: statDelta(category, impactScore),
   emotionalState,
+  thought: thoughtFor(category, title),
+  isMajorEvent: impactScore >= 80,
   moneyChange,
   relationshipChange,
   healthChange,
   creativityChange
 });
+
+const statDelta = (category: MilestoneCategory, impactScore: number) => {
+  const power = Math.max(2, Math.round((impactScore - 50) / 8));
+  const base = { money: 0, health: 0, relationships: 0, creativity: 0, happiness: Math.max(1, Math.round(power / 2)) };
+  if (category === "money") return { ...base, money: power + 2 };
+  if (category === "health") return { ...base, health: power + 2 };
+  if (category === "love") return { ...base, relationships: power + 2, happiness: base.happiness + 1 };
+  if (category === "career") return { ...base, money: power, happiness: base.happiness + 1 };
+  if (category === "creativity") return { ...base, creativity: power + 2 };
+  return { ...base, health: 1, creativity: 1, happiness: base.happiness + 2 };
+};
+
+const thoughtFor = (category: MilestoneCategory, title: string) => {
+  const thoughts: Record<MilestoneCategory, string> = {
+    money: "I can feel the future getting less fragile.",
+    health: "The body is part of the timeline, not a side quest.",
+    love: "The people around me are changing the map.",
+    career: "This is where intention becomes evidence.",
+    creativity: "I made something real enough to answer back.",
+    mindset: "A different thought created a different route."
+  };
+  return `${thoughts[category]} (${title})`;
+};
 
 export function normalizeInput(input: OnboardingInput): OnboardingInput {
   return {
