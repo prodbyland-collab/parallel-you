@@ -1,6 +1,9 @@
 import type { EmotionalTone, ExperienceLevel, GoalCategory, ParsedUserProfile, PlayerProfile } from "@/lib/story-types";
 
-type ProfileInput = Pick<PlayerProfile, "doneSoFar" | "goals"> & Partial<Pick<PlayerProfile, "goal" | "whatIf">>;
+type ProfileInput = Partial<Pick<PlayerProfile, "name" | "age" | "country" | "doneSoFar" | "goals" | "goal" | "whatIf">> & {
+  pastText?: string;
+  goalText?: string;
+};
 
 const clamp = (value: number) => Math.max(1, Math.min(10, Math.round(value)));
 
@@ -15,7 +18,9 @@ const categoryPatterns: Array<{ category: GoalCategory; vocabulary: string[]; pa
 ];
 
 export function parseUserProfile(input: ProfileInput): ParsedUserProfile {
-  const text = `${input.doneSoFar ?? ""} ${input.goals ?? ""} ${input.goal ?? ""} ${input.whatIf ?? ""}`.toLowerCase();
+  const past = input.pastText ?? input.doneSoFar ?? "";
+  const goal = input.goalText ?? input.goals ?? input.goal ?? "";
+  const text = `${past} ${goal} ${input.whatIf ?? ""} ${input.country ?? ""}`.toLowerCase();
   const categoryMatch = categoryPatterns.find((entry) => entry.pattern.test(text));
   const goalCategory = categoryMatch?.category ?? "general";
   const personalVocabulary = categoryMatch?.vocabulary ?? ["work", "step", "progress", "people", "future"];
@@ -40,8 +45,10 @@ export function parseUserProfile(input: ProfileInput): ParsedUserProfile {
   const social = clamp(5 + countMatches(text, /(friend|family|people|team|client|audience|listeners|support|partner)/g) - countMatches(text, /(alone|lonely|isolated|nobody|no one)/g));
   const confidence = clamp(5 + confidenceSignals);
 
+  const regrets = getRegrets(text);
+
   return {
-    mainGoal: extractMainGoal(input.goals || input.goal || ""),
+    mainGoal: extractMainGoal(goal),
     goalCategory,
     experienceLevel: getExperienceLevel(text),
     emotionalTone: getEmotionalTone(text, consistency, confidence),
@@ -52,7 +59,8 @@ export function parseUserProfile(input: ProfileInput): ParsedUserProfile {
     social,
     confidence,
     keyThemes: getThemes(text),
-    possibleRegrets: getRegrets(text),
+    regrets,
+    possibleRegrets: regrets,
     personalVocabulary
   };
 }

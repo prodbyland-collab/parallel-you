@@ -9,6 +9,7 @@ import { FunLayer } from "@/components/story/FunLayer";
 import { Letterbox } from "@/components/story/Letterbox";
 import { SceneProgress } from "@/components/story/SceneProgress";
 import { SubtitleNarration } from "@/components/story/SubtitleNarration";
+import { getEndingHistory, isEndingTooSimilar, regenerateEndingVariant, saveEndingHistory } from "@/lib/ending-history";
 import { generateEnding } from "@/lib/ending-generator";
 import { chooseSceneOption, collectMemoryObject, completeMiniGame, getAllScenes, getScene, isEnding, triggerChaosEvent } from "@/lib/story-engine";
 import { hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState } from "@/lib/story-storage";
@@ -68,9 +69,12 @@ export default function StoryPage() {
       const next = chooseSceneOption(state, choice);
       if (isEnding(next)) {
         const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
-        const ending = generateEnding(finalState);
+        const draftEnding = generateEnding(finalState);
+        const history = getEndingHistory();
+        const ending = isEndingTooSimilar(draftEnding, history) ? regenerateEndingVariant(draftEnding, finalState.profile, finalState) : draftEnding;
         saveStoryState(finalState);
         saveEnding(ending);
+        saveEndingHistory(ending);
         saveStorySignature(ending.signature);
         router.push("/ending");
         return;

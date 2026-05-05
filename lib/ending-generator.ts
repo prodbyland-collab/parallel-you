@@ -4,145 +4,150 @@ import type { EndingResult, StoryRunState } from "@/lib/story-types";
 
 export function generateEnding(state: StoryRunState): EndingResult {
   const name = firstName(state.profile);
-  const flags = new Set(state.flags);
-  const traits = state.traits;
-  const language = goalLanguage(state.profile.goal);
-
   const identity = pickIdentity(state);
   const outcome = pickOutcome(state);
   const tradeoff = pickTradeoff(state);
-  const environment = traits.creativity > 72 ? "studio" : traits.risk > 72 ? "city" : traits.consistency > 70 ? "sunrise" : flags.has("burned_out") ? "void" : "spotlight";
-  const mood = flags.has("breakthrough_seen") || traits.consistency > 76 ? "breakthrough" : flags.has("burned_out") ? "tired" : traits.risk > 72 ? "tense" : "hopeful";
-  const discoveredCount = getDiscoveredCount(state);
+  const memoryCallback = buildMemoryCallback(state);
+  const finalObject = pickFinalObject(state);
+  const finalLine = pickFinalLine(state);
   const signature = state.storySignature || createStorySignature(state);
-  const isRepeatShape = state.replayCount > 0;
 
   return {
-    title: pickEndingTitle(state),
+    title: pickEndingTitle(state, identity),
     identity,
     outcome,
     tradeoff,
-    environment,
-    mood,
-    reflection: buildReflection(name, state, identity, outcome, tradeoff, language.work, isRepeatShape),
-    finalLine: pickFinalLine(state, isRepeatShape),
+    reflection: buildReflection(name, state, identity, outcome, tradeoff, memoryCallback, finalObject),
+    finalLine,
+    finalObject,
     hints: buildHints(state),
-    quote: pickShareQuote(state),
-    discoveredCount,
+    quote: finalLine,
+    discoveredCount: getDiscoveredCount(state),
     totalMoments: 18,
     memories: state.memories,
     secretScenesFound: state.secretScenesFound,
     rareMomentsTriggered: state.rareMomentsTriggered,
     signature,
-    isRepeatShape
+    isRepeatShape: state.replayCount > 0,
+    environment: pickEnvironment(state),
+    mood: pickMood(state)
   };
 }
 
-function pickEndingTitle(state: StoryRunState) {
-  if (state.secretScenesFound.some((scene) => scene.id === "secret-night-changes")) return "The Night That Changed Things";
-  if (state.chaosEvents.length && state.flags.includes("lucky_event_seen")) return "The Good Wrong Turn";
-  if (state.memories.length >= 5) return "The Life You Remembered";
-  if (state.traits.consistency > 80) return "The Quiet Breakthrough";
-  if (state.flags.includes("burned_out")) return "The Reset After The Fire";
-  return "The Life You Chose";
-}
-
 function pickIdentity(state: StoryRunState) {
-  const { traits, flags } = state;
-  if (traits.consistency > 76 && traits.creativity > 64 && traits.social > 52) return "Steady Creator";
-  if (traits.consistency > 78 && traits.discipline > 72) return "Quiet Builder";
-  if (traits.risk > 76 && flags.includes("took_big_risk")) return "Risk-Taker";
-  if (traits.creativity > 78 && flags.includes("burned_out")) return "Tired Creator";
-  if (traits.creativity > 72) return "Dreamer";
-  if (flags.includes("returned_after_failure") && traits.consistency > 58) return "Late Bloomer";
-  if (flags.includes("quit_once") && !flags.includes("returned_after_failure")) return "Drifter";
-  if (flags.includes("burned_out")) return "Survivor";
-  if (traits.consistency > 58) return "Builder";
-  return "Almost There";
+  if (countChoiceIds(state, ["do_nothing", "skip_today", "repeat_pattern", "scroll_late"]) >= 3) return "The One Who Kept Leaving";
+  if (state.flags.includes("returned_after_failure")) return "The One Who Came Back";
+  if (state.flags.includes("sent_unfinished")) return "The Person Who Finally Sent It";
+  if (countChoiceIds(state, ["start_over_again", "make_big_return"]) >= 2) return "The Restless Starter";
+  if (state.flags.includes("almost_finished") && !state.flags.includes("finished_badly")) return "The Almost Finisher";
+  if (state.traits.consistency > 72) return "The Quiet Builder";
+  if (state.flags.includes("burned_out") && state.traits.confidence > 45) return "The Tired Winner";
+  if (state.profile.age > 24 && state.flags.includes("stayed_consistent")) return "The Late Beginner";
+  return "The Unfinished Version";
 }
 
 function pickOutcome(state: StoryRunState) {
-  const { traits, flags } = state;
-  if (flags.includes("lucky_event_seen") && traits.risk > 62) return "messy success";
-  if (flags.includes("breakthrough_seen") && traits.creativity > 62) return "people noticing your work";
-  if (traits.consistency > 74) return "steady growth";
-  if (flags.includes("returned_after_failure")) return "a late win";
-  if (flags.includes("ignored_opportunity") && traits.risk < 50) return "a missed chance";
-  if (flags.includes("burned_out")) return "emotional reset";
-  return "quiet meaningful progress";
+  const language = goalLanguage(state.profile.goal);
+  if (state.flags.includes("someone_noticed")) return `one person remembered the ${language.work}`;
+  if (state.flags.includes("lucky_event_seen")) return "a door opened at the strangest time";
+  if (state.flags.includes("finished_badly")) return `the ${language.work} finally existed outside your head`;
+  if (state.traits.consistency > 74) return "the small days started to add up";
+  if (state.flags.includes("ignored_opportunity")) return "one chance passed, and another kind of honesty stayed";
+  return "the story stayed unfinished, but not empty";
 }
 
 function pickTradeoff(state: StoryRunState) {
-  const { traits, flags } = state;
-  if (flags.includes("isolated_self") || traits.social < 42) return "closeness";
-  if (flags.includes("burned_out")) return "peace";
-  if (traits.risk > 76) return "stability";
-  if (traits.discipline > 76) return "spontaneity";
-  if (flags.includes("ignored_opportunity")) return "opportunity";
-  return "comfort";
+  if (state.flags.includes("ignored_message") || state.traits.social < 42) return "some messages stayed unanswered";
+  if (state.flags.includes("burned_out")) return "your body asked for more than ambition";
+  if (state.flags.includes("took_big_risk")) return "peace got interrupted";
+  if (state.flags.includes("did_nothing")) return "time moved even when you didn’t";
+  return "comfort became harder to trust";
 }
 
-function buildReflection(name: string, state: StoryRunState, identity: string, outcome: string, tradeoff: string, work: string, isRepeatShape: boolean) {
-  const goal = state.profile.goal;
-  const whatIf = state.profile.whatIf;
-  const wild = state.wildcardsUsed[0];
-  const chaos = state.chaosEvents[0];
-  const memoryLine = buildMemoryLine(state);
-  const repeatLine = isRepeatShape ? "Some of this felt familiar. That changed the ending. The story looked for a quieter route through the same old pattern." : "";
-  const wildLine = wild ? `Along the way, ${wild.title.toLowerCase()} changed the plan and forced ${name} to react.` : "There was no single magic moment. The story changed because small choices kept adding up.";
-  const chaosLine = chaos ? `The surprise moment, ${chaos.title.toLowerCase()}, did not come from nowhere. It mattered because ${name} had already started moving.` : "";
-  const returnLine = state.flags.includes("returned_after_failure")
-    ? `${name} stepped away from the dream once, but came back with a clearer idea of what the goal needed.`
-    : `${name} kept hearing the old question, "${whatIf}", but answered it by making choices instead of only thinking about it.`;
-
-  return [
-    `${name} started with a simple wish: ${goal}.`,
-    `Before the story began, this was already true: ${state.profile.doneSoFar}. Then it became a small action, then a visible ${work}, then a pattern of choices that either helped or slowed the dream down.`,
-    repeatLine,
-    wildLine,
-    chaosLine,
-    memoryLine,
-    returnLine,
-    `By the end, ${name} became a ${identity.toLowerCase()}. The goal turned into ${outcome}, but it also came with a tradeoff: ${tradeoff}.`
-  ].filter(Boolean).join("\n\n");
+function pickEndingTitle(state: StoryRunState, identity: string) {
+  if (state.replayCount > 0) return "The Version That Changed";
+  if (state.secretScenesFound.some((scene) => scene.id === "night_everything_changes")) return "The Night Everything Changes";
+  if (state.secretScenesFound.some((scene) => scene.id === "quiet_breakthrough")) return "The Quiet Breakthrough";
+  if (state.flags.includes("ignored_message")) return "The Message You Remembered";
+  if (state.flags.includes("someone_noticed")) return "When One Person Saw It";
+  return identity;
 }
 
-function pickFinalLine(state: StoryRunState, isRepeatShape = false) {
-  if (isRepeatShape) return "You were here again. This time, one small thing changed.";
-  if (state.flags.includes("stayed_consistent")) return "Your life did not change in one big moment. It changed because you kept showing up.";
-  if (state.flags.includes("took_big_risk")) return "The future did not open because you felt ready. It opened because you moved anyway.";
-  if (state.flags.includes("returned_after_failure")) return "The version of you that came back became stronger than the version that never fell.";
-  return "Some endings are not answers. They are a reason to try the next scene differently.";
+function buildReflection(name: string, state: StoryRunState, identity: string, outcome: string, tradeoff: string, memoryCallback: string, finalObject: string) {
+  const past = state.profile.doneSoFar || "You had already lived some of this before the story started.";
+  const goal = state.profile.goals || state.profile.goal || "You wanted something to feel real.";
+  const lines = [
+    `${name} started in a normal room.`,
+    past,
+    `The goal was simple when you said it: ${goal}`,
+    "Then real life did what it does. Messages waited. Sleep got weird. Small wins looked too small.",
+    memoryCallback,
+    `By the end, you became ${identity}.`,
+    `What happened: ${outcome}.`,
+    `What it cost: ${tradeoff}.`,
+    `The final scene keeps one thing in frame: the ${finalObject}.`
+  ];
+
+  if (state.flags.includes("ignored_message")) lines.splice(5, 0, "You remember the message you didn’t answer.");
+  if (countChoiceIds(state, ["do_nothing", "skip_today", "repeat_pattern", "scroll_late"]) >= 2) lines.splice(5, 0, "You did nothing more than once. It still shaped the room.");
+  if (state.flags.includes("sent_unfinished")) lines.splice(5, 0, "You sent it before it felt safe.");
+  if (state.flags.includes("stayed_consistent")) lines.splice(5, 0, "It wasn’t dramatic. It just started to add up.");
+  if (state.replayCount > 0) lines.push("You were here again. The ending noticed.");
+
+  return lines.join("\n\n");
+}
+
+function buildMemoryCallback(state: StoryRunState) {
+  if (!state.memories.length) return "No object came with you. The ending feels cleaner, and a little colder.";
+  const last = state.memories[state.memories.length - 1];
+  return `The ${last.name.toLowerCase()} comes back at the end. Not because it is special. Because you remember where it was.`;
+}
+
+function pickFinalLine(state: StoryRunState) {
+  if (state.flags.includes("returned_after_failure")) return "You left. Then you came back.";
+  if (state.flags.includes("finished_badly")) return "It was not perfect. It was outside of you.";
+  if (state.flags.includes("ignored_message")) return "One unanswered message stayed in the room.";
+  if (state.flags.includes("stayed_consistent")) return "Nobody noticed every day. You did.";
+  return "This was one version of your life.";
+}
+
+function pickFinalObject(state: StoryRunState) {
+  const memory = state.memories[state.memories.length - 1];
+  if (memory) return memory.name.toLowerCase();
+  if (state.flags.includes("ignored_message")) return "phone";
+  if (state.flags.includes("burned_out")) return "alarm clock";
+  if (state.flags.includes("sent_unfinished")) return "open laptop";
+  return "coffee cup";
+}
+
+function pickEnvironment(state: StoryRunState) {
+  if (state.flags.includes("burned_out")) return "bedroom";
+  if (state.flags.includes("someone_noticed")) return "city";
+  if (state.traits.consistency > 72) return "sunrise";
+  if (state.traits.creativity > 70) return "studio";
+  return "bedroom";
+}
+
+function pickMood(state: StoryRunState) {
+  if (state.flags.includes("burned_out")) return "tired";
+  if (state.flags.includes("ignored_message")) return "tense";
+  if (state.flags.includes("someone_noticed") || state.flags.includes("stayed_consistent")) return "hopeful";
+  return "focused";
 }
 
 function buildHints(state: StoryRunState) {
   const hints = [
-    "There is a version where you ask for help earlier.",
-    "There is a moment where one risky yes changes everything.",
-    "There is a path where consistency pays off later.",
-    "There is a calmer ending hidden behind rest instead of pressure.",
-    "There is a lucky scene that is hard to find."
+    "There is a version where you answer the message.",
+    "There is a path where one rough send changes the room.",
+    "There is a quieter ending if you come back sooner.",
+    "There is a scene that only appears after repeated avoidance.",
+    "There is a version where one person noticing is enough."
   ];
 
-  if (!state.flags.includes("took_big_risk")) return [hints[1], hints[2], hints[4]];
-  if (!state.flags.includes("asked_for_help")) return [hints[0], hints[3], hints[4]];
-  if (!state.flags.includes("stayed_consistent")) return [hints[2], hints[1], hints[3]];
-  return [hints[4], hints[3], hints[0]];
-}
-
-function buildMemoryLine(state: StoryRunState) {
-  if (!state.memories.length) return "No memory objects reached the ending, so the final scene felt a little quieter.";
-  const names = state.memories.slice(0, 3).map((memory) => memory.name.toLowerCase()).join(", ");
-  const extra = state.memories.length > 3 ? `, and ${state.memories.length - 3} more small object${state.memories.length - 3 === 1 ? "" : "s"}` : "";
-  return `The ending remembered the ${names}${extra}. Small things can carry a lot of feeling.`;
-}
-
-function pickShareQuote(state: StoryRunState) {
-  const memoryQuote = state.memories[state.memories.length - 1]?.quote;
-  if (memoryQuote) return memoryQuote;
-  if (state.chaosEvents.length) return "The wrong turn helped me.";
-  if (state.secretScenesFound.length) return "I found a scene I almost missed.";
-  return pickFinalLine(state);
+  if (!state.flags.includes("sent_unfinished")) return [hints[1], hints[4], hints[2]];
+  if (!state.flags.includes("ignored_message")) return [hints[0], hints[3], hints[2]];
+  if (!state.flags.includes("returned_after_failure")) return [hints[2], hints[3], hints[4]];
+  return [hints[3], hints[0], hints[4]];
 }
 
 function getDiscoveredCount(state: StoryRunState) {
@@ -154,4 +159,9 @@ function getDiscoveredCount(state: StoryRunState) {
   state.wildcardsUsed.forEach((event) => unique.add(`wild:${event.id}`));
   state.miniGamesCompleted.forEach((miniGame) => unique.add(`mini:${miniGame}`));
   return Math.min(18, unique.size);
+}
+
+function countChoiceIds(state: StoryRunState, choiceIds: string[]) {
+  const wanted = new Set(choiceIds);
+  return state.choices.filter((choice) => wanted.has(choice.choiceId)).length;
 }

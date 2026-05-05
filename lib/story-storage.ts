@@ -18,6 +18,7 @@ export function loadStoryState() {
     const parsed = JSON.parse(raw) as StoryRunState;
     return {
       ...parsed,
+      recentChoiceTexts: parsed.recentChoiceTexts ?? parsed.choices?.slice(-12).map((choice) => choice.choiceText) ?? [],
       chaosUsed: parsed.chaosUsed ?? false,
       chaosEvents: parsed.chaosEvents ?? [],
       memories: parsed.memories ?? [],

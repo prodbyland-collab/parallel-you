@@ -36,6 +36,7 @@ export type ParsedUserProfile = {
   social: number;
   confidence: number;
   keyThemes: string[];
+  regrets: string[];
   possibleRegrets: string[];
   personalVocabulary: string[];
 };
@@ -46,6 +47,7 @@ export type HiddenTraits = {
   risk: number;
   creativity: number;
   social: number;
+  confidence: number;
   luck: number;
 };
 
@@ -54,6 +56,13 @@ export type StoryFlag =
   | "stayed_consistent"
   | "took_big_risk"
   | "ignored_opportunity"
+  | "sent_unfinished"
+  | "ignored_message"
+  | "started_over_again"
+  | "did_nothing"
+  | "someone_noticed"
+  | "almost_finished"
+  | "finished_badly"
   | "asked_for_help"
   | "isolated_self"
   | "returned_after_failure"
@@ -99,7 +108,7 @@ export type FirstPersonCut = {
   id: string;
   title: string;
   detail: string;
-  kind: "screen" | "message" | "walk" | "still";
+  kind: "screen" | "message" | "walk" | "still" | "late_night" | "phone" | "thinking" | "desk";
 };
 
 export type WildCardEvent = {
@@ -171,6 +180,7 @@ export type StoryRunState = {
   currentSceneId: string;
   sceneHistory: string[];
   choices: ChoiceRecord[];
+  recentChoiceTexts: string[];
   wildcardsUsed: WildCardEvent[];
   chaosUsed: boolean;
   chaosEvents: ChaosEvent[];
@@ -190,6 +200,7 @@ export type EndingResult = {
   tradeoff: string;
   reflection: string;
   finalLine: string;
+  finalObject: string;
   hints: string[];
   quote: string;
   discoveredCount: number;

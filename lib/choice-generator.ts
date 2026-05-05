@@ -1,67 +1,145 @@
 import { seededRandom } from "@/lib/random-engine";
-import type { StoryChoice, StoryRunState, StoryScene } from "@/lib/story-types";
+import type { GoalCategory, PlayerProfile, StoryChoice, StoryRunState, StoryScene } from "@/lib/story-types";
 
-const groundedAlternates: Record<string, string[]> = {
-  "one-hour": ["Open it and fix one small part", "Set a timer and begin badly", "Do the first tiny step"],
-  rest: ["Close it and try tomorrow", "Go to sleep before making it worse", "Rest, but leave it open for morning"],
-  message: ["Text someone: I need a push", "Send the uncomfortable honest message", "Ask one person to check on you"],
-  routine: ["Do it before your phone gets you", "Keep the small habit boring", "Repeat the one thing that worked"],
-  "big-plan": ["Make a plan instead of starting", "Rewrite the plan again", "Organize everything except the work"],
-  scroll: ["Check your phone and lose time", "Scroll until the guilt comes back", "Say five minutes and disappear"],
-  share: ["Send it anyway", "Post it before deleting it", "Let people see the rough version"],
-  "keep-private": ["Save it in drafts again", "Hide it and keep editing", "Keep it to yourself one more night"],
-  "ask-feedback": ["Ask one honest person", "Send it to the person who will not lie", "Ask for one specific note"],
-  "break-loop": ["Do one useful thing before bed", "Break the loop with a tiny task", "Start again without announcing it"],
-  "stay-loop": ["Say tomorrow again", "Avoid it and let the week pass", "Do nothing and feel it later"],
-  "small-help": ["Ask someone to check in tomorrow", "Let one person know you are stuck", "Ask for a small push"],
-  "say-yes": ["Say yes before fear edits the reply", "Take the chance while nervous", "Reply yes and breathe after"],
-  wait: ["Ask for more time", "Delay until you feel ready", "Prepare instead of answering yet"],
-  "bring-friend": ["Send the screenshot to a friend", "Ask someone what they honestly think", "Talk it out before replying"],
-  return: ["Restart smaller", "Come back with less pressure", "Pick up the part you dropped"],
-  quit: ["Stop for now", "Tell yourself it is not for you", "Leave it alone and call it peace"],
-  "risk-reset": ["Change the plan completely", "Try the version that scares you", "Delete the old plan and move"],
-  "own-it": ["Keep showing up while people watch", "Post again even if it feels weird", "Stay visible for one more day"],
-  hide: ["Go quiet", "Pull back from attention", "Stop posting for a while"],
-  learn: ["Improve one specific thing", "Use the feedback instead of spiraling", "Make the next version cleaner"],
-  "make-time": ["Put the work down and show up", "See them tonight", "Choose the person for one evening"],
-  "lock-in": ["Ignore the message and keep working", "Choose the work tonight", "Keep going and let the distance grow"],
-  explain: ["Tell the truth before it gets worse", "Reply honestly", "Say what has been happening"],
-  repair: ["Cancel one thing and recover", "Sleep before deciding anything", "Make the week smaller"],
-  force: ["Push through with coffee", "Keep going even though you are tired", "Force it and pay later"],
-  vanish: ["Stop replying for a while", "Disappear until it feels easier", "Go silent"],
-  "step-through": ["Say yes and figure it out", "Take the chance scared", "Walk in before you feel ready"],
-  "prepare-first": ["Ask clear questions first", "Prepare properly before saying yes", "Slow down and answer carefully"],
-  "miss-it": ["Leave the message unanswered", "Avoid the chance", "Let it pass and pretend it is fine"],
-  "come-back": ["Fix one mistake and try again", "Look at what failed and repair it", "Try again without the speech"],
-  "blame-world": ["Blame the situation", "Avoid looking at your part", "Stay angry a little longer"],
-  "ask-mentor": ["Ask someone better", "Ask for boring practical advice", "Let someone experienced see the mess"],
-  "build-system": ["Write down what worked", "Turn it into a weekly routine", "Make the win repeatable"],
-  "chase-high": ["Try to force another win", "Chase the feeling", "Push too hard after the first proof"],
-  "share-credit": ["Call someone and say it worked", "Let someone celebrate with you", "Share the small win"],
-  "choose-known": ["Choose stability", "Take the slower safer path", "Keep the life that lets you breathe"],
-  "choose-next": ["Take the bigger risk", "Choose the thing you might regret avoiding", "Step toward the larger version"],
-  "choose-balanced": ["Grow without burning out", "Choose progress you can live with", "Protect peace and keep moving"],
-  "call-someone": ["Call the person who stayed", "Let someone hear the good news", "Do not carry it alone"],
-  "stand-alone": ["Keep the win private", "Sit with it alone", "Do not tell anyone yet"],
-  "thank-them": ["Send the thank-you now", "Tell them they mattered", "Thank the person before the moment passes"],
-  forgive: ["Stop punishing yourself for starting late", "Let the old delay be human", "Forgive the slow beginning"],
-  "keep-hunger": ["Keep improving, but speak kindly", "Want more without hurting yourself", "Stay hungry, not cruel"],
-  "begin-again": ["Pick one small thing for tomorrow", "Begin again quietly", "Leave one simple task for morning"]
+const categoryChoiceText: Record<GoalCategory, Partial<Record<string, string[]>>> = {
+  music: {
+    open_project: ["Open the project file you keep avoiding"],
+    fix_small_part: ["Fix the part of the track that keeps bothering you"],
+    send_unfinished: ["Send the rough beat to one person"],
+    send_unfinished_again: ["Send the rough beat before you change your mind"],
+    start_over_again: ["Start another loop instead of finishing this one"],
+    finish_badly: ["Export it before you change your mind"],
+    share_final_piece: ["Send the version that exists"],
+    make_next_thing: ["Make one new section while the feeling is still there"]
+  },
+  business: {
+    open_project: ["Open the page you keep avoiding"],
+    fix_small_part: ["Fix one broken page"],
+    send_unfinished: ["Show someone the ugly version"],
+    send_unfinished_again: ["Send the client message before overthinking"],
+    start_over_again: ["Start a cleaner plan instead of launching this one"],
+    finish_badly: ["Publish the rough version"],
+    share_final_piece: ["Send the offer to one real person"],
+    make_next_thing: ["Fix the next thing a user would notice"]
+  },
+  fitness: {
+    open_project: ["Put your shoes on before you negotiate with yourself"],
+    fix_small_part: ["Do the ugly 20-minute workout"],
+    send_unfinished: ["Tell one friend you are trying"],
+    send_unfinished_again: ["Send the check-in before you hide"],
+    start_over_again: ["Change the plan again instead of training"],
+    finish_badly: ["Finish the short workout, even messy"],
+    share_final_piece: ["Tell someone you showed up today"],
+    make_next_thing: ["Cook something simple and call it a win"]
+  },
+  writing: {
+    open_project: ["Open the draft you keep avoiding"],
+    fix_small_part: ["Write one bad page"],
+    send_unfinished: ["Send the unfinished draft"],
+    send_unfinished_again: ["Send the draft before you protect it again"],
+    start_over_again: ["Start another chapter instead"],
+    finish_badly: ["End the scene badly and move on"],
+    share_final_piece: ["Show the draft that exists"],
+    make_next_thing: ["Delete the sentence you keep protecting"]
+  },
+  career: {},
+  school: {},
+  relationship: {},
+  personal: {},
+  general: {}
 };
 
-export function generateSceneChoices(scene: StoryScene, state: StoryRunState): StoryChoice[] {
+const genericChoiceText: Record<string, string[]> = {
+  open_project: ["Open the thing you keep avoiding"],
+  do_nothing: ["Do nothing"],
+  message_someone: ["Text one person before you overthink it"],
+  fix_small_part: ["Fix one small part"],
+  start_over_again: ["Start over again"],
+  close_try_tomorrow: ["Close it and try tomorrow"],
+  answer_message: ["Answer before it becomes a whole thing"],
+  ignore_message: ["Put the phone face down"],
+  send_unfinished: ["Send it anyway"],
+  push_late: ["Stay for twenty more minutes"],
+  sleep_instead: ["Sleep before you make it worse"],
+  scroll_late: ["Check your phone and lose the night"],
+  save_proof: ["Save it before you judge it"],
+  hide_small_win: ["Pretend it does not count"],
+  tell_one_person: ["Tell one person it finally moved"],
+  lower_the_bar: ["Lower the bar and still do something"],
+  skip_today: ["Skip today and promise tomorrow"],
+  ask_for_help: ["Say you are having a bad day"],
+  finish_badly: ["Finish it badly on purpose"],
+  polish_forever: ["Fix one more thing, then another"],
+  send_unfinished_again: ["Send it before it feels safe"],
+  reply_to_notice: ["Reply like it matters"],
+  act_cool: ["Act like you do not care"],
+  make_next_thing: ["Use the feeling and make the next thing"],
+  name_pattern: ["Admit this is the same pattern"],
+  repeat_pattern: ["Do the same thing again"],
+  start_smaller: ["Restart smaller than your ego wants"],
+  automatic_small_choice: ["You choose one small thing anyway"],
+  answer_pressure: ["Answer with the truth"],
+  avoid_pressure: ["Leave it unread"],
+  take_shortcut: ["Take the shortcut and deal with it later"],
+  come_back_quietly: ["Come back without announcing it"],
+  make_big_return: ["Make a big plan again"],
+  ask_someone_back: ["Ask someone to sit with you while you restart"],
+  walk_through: ["Walk through before you feel ready"],
+  prepare_at_door: ["Take one day to prepare properly"],
+  let_door_close: ["Let it close and pretend you chose peace"],
+  accept_not_nothing: ["Let it be enough for tonight"],
+  keep_punishing: ["Only see what is missing"],
+  share_final_piece: ["Show the version that exists"],
+  see_ending: ["See what stayed"]
+};
+
+const softAlternates = [
+  "Try the least dramatic version",
+  "Make it smaller until it feels possible",
+  "Leave the room for water, then come back",
+  "Do the part nobody will see",
+  "Stop pretending you need a perfect mood",
+  "Send one honest sentence",
+  "Open it for five minutes",
+  "Let tonight be ugly but real"
+];
+
+export function generateChoices(scene: StoryScene, profile: PlayerProfile, state: StoryRunState): StoryChoice[] {
   if (scene.noChoiceMoment) {
-    return [{ id: `auto-${scene.id}`, text: "Continue", effect: {}, auto: true }];
+    return scene.choices.map((choice) => ({ ...choice, auto: true, text: pickText(choice.id, choice.text, profile, state) }));
   }
 
-  const usedTexts = new Set(state.choices.map((choice) => choice.choiceText));
-  const random = seededRandom(state.seed + state.choices.length * 71 + scene.id.length * 19 + state.replayCount * 211);
+  const used = new Set([
+    ...state.choices.map((choice) => normalize(choice.choiceText)),
+    ...(state.recentChoiceTexts ?? []).map(normalize)
+  ]);
 
-  return scene.choices.map((choice) => {
-    const alternates = groundedAlternates[choice.id] ?? [];
-    const pool = [choice.text, ...alternates].filter((text) => !usedTexts.has(text));
-    const text = pool.length ? pool[Math.floor(random() * pool.length)] : `${choice.text}, this time`;
-    usedTexts.add(text);
+  return scene.choices.slice(0, 3).map((choice, index) => {
+    const preferred = pickText(choice.id, choice.text, profile, state, index);
+    const text = used.has(normalize(preferred)) ? pickUnusedFallback(used, state, index) : preferred;
+    used.add(normalize(text));
     return { ...choice, text };
   });
+}
+
+export const generateSceneChoices = (scene: StoryScene, state: StoryRunState) => generateChoices(scene, state.profile, state);
+
+function pickText(choiceId: string, fallback: string, profile: PlayerProfile, state: StoryRunState, index = 0) {
+  const category = profile.parsedProfile?.goalCategory ?? "general";
+  const pool = categoryChoiceText[category]?.[choiceId] ?? genericChoiceText[choiceId] ?? [fallback];
+  const random = seededRandom(state.seed + state.choices.length * 47 + choiceId.length * 13 + index);
+  return pool[Math.floor(random() * pool.length)] ?? fallback;
+}
+
+function pickUnusedFallback(used: Set<string>, state: StoryRunState, index: number) {
+  const random = seededRandom(state.seed + state.choices.length * 71 + index * 19);
+  const shuffled = softAlternates
+    .map((text) => ({ text, sort: random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((entry) => entry.text);
+  return shuffled.find((text) => !used.has(normalize(text))) ?? `Do one small real thing ${state.choices.length + index + 1}`;
+}
+
+function normalize(text: string) {
+  return text.trim().toLowerCase();
 }
