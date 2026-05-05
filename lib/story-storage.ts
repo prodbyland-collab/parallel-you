@@ -13,7 +13,16 @@ export function loadStoryState() {
   const raw = localStorage.getItem(STORY_STATE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as StoryRunState;
+    const parsed = JSON.parse(raw) as StoryRunState;
+    return {
+      ...parsed,
+      chaosUsed: parsed.chaosUsed ?? false,
+      chaosEvents: parsed.chaosEvents ?? [],
+      memories: parsed.memories ?? [],
+      secretScenesFound: parsed.secretScenesFound ?? [],
+      miniGamesCompleted: parsed.miniGamesCompleted ?? [],
+      rareMomentsTriggered: parsed.rareMomentsTriggered ?? []
+    } satisfies StoryRunState;
   } catch {
     return null;
   }

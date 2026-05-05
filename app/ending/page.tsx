@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, RotateCcw, Sparkles } from "lucide-react";
+import { Copy, Film, RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { CinematicStoryScene } from "@/components/story/CinematicStoryScene";
 import { Letterbox } from "@/components/story/Letterbox";
 import { clearStoryState, loadEnding, loadStoryState } from "@/lib/story-storage";
@@ -33,7 +33,7 @@ export default function EndingPage() {
 
   const share = async () => {
     if (!ending) return;
-    await navigator.clipboard.writeText(`${ending.title}\n\n${ending.reflection}\n\n${ending.finalLine}`);
+    await navigator.clipboard.writeText(`${ending.title}\n${ending.identity}\n"${ending.quote}"\nDiscovered ${ending.discoveredCount}/${ending.totalMoments} moments`);
     setCopied(true);
   };
 
@@ -67,6 +67,7 @@ export default function EndingPage() {
           <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100">{ending.identity}</span>
           <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-fuchsia-100">{ending.outcome}</span>
           <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-amber-100">Lost: {ending.tradeoff}</span>
+          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-100">{ending.discoveredCount}/{ending.totalMoments} moments</span>
         </div>
 
         <article className="mt-8 max-w-3xl whitespace-pre-line rounded-3xl border border-white/10 bg-black/50 p-5 text-lg leading-9 text-slate-100 shadow-glow backdrop-blur-xl">
@@ -78,6 +79,35 @@ export default function EndingPage() {
           <button onClick={replay} className="story-choice text-left"><RotateCcw size={18} /> <span className="ml-2 font-black">Replay</span></button>
           <Link href="/start" onClick={clearStoryState} className="story-choice text-left"><Sparkles size={18} /> <span className="ml-2 font-black">Different mindset</span></Link>
           <button onClick={share} className="story-choice text-left"><Copy size={18} /> <span className="ml-2 font-black">{copied ? "Copied" : "Share summary"}</span></button>
+        </div>
+
+        <section className="mt-8 grid gap-4 lg:grid-cols-[1fr_0.8fr]">
+          <div className="share-card rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-xl">
+            <p className="cinema-kicker">Shareable ending card</p>
+            <h2 className="mt-3 text-3xl font-black leading-none text-white">{ending.title}</h2>
+            <p className="mt-2 text-sm font-black uppercase tracking-[0.18em] text-cyan-100">{ending.identity}</p>
+            <p className="mt-5 text-2xl font-black leading-tight text-white">&quot;{ending.quote}&quot;</p>
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-100">
+              <Trophy size={14} /> Discovered {ending.discoveredCount}/{ending.totalMoments} moments
+            </div>
+            <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">No spoilers. Just suspicious aura.</p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-black/45 p-5 backdrop-blur-xl">
+            <p className="cinema-kicker">Replay report</p>
+            <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-200">
+              <ReplayLine label="Memories collected" value={`${ending.memories.length}/7`} />
+              <ReplayLine label="Secret scenes found" value={`${ending.secretScenesFound.length}/3`} />
+              <ReplayLine label="Rare events triggered" value={`${ending.rareMomentsTriggered.length + state.wildcardsUsed.filter((event) => event.rarity === "rare").length}/8`} />
+              <ReplayLine label="Chaos button" value={state.chaosUsed ? "pressed" : "unpressed"} />
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          <CollectionPanel title="Memories collected" empty="No objects collected this run." items={ending.memories.map((memory) => `${memory.name}: ${memory.quote}`)} />
+          <CollectionPanel title="Secret scenes found" empty="No secret scenes found yet." items={ending.secretScenesFound.map((scene) => `${scene.title} - ${scene.unlockedBy}`)} />
+          <CollectionPanel title="Rare movie moments" empty="No rare movie moments this time." items={[...ending.rareMomentsTriggered.map((moment) => `${moment.title}: ${moment.description}`), ...state.chaosEvents.map((event) => `${event.title}: ${event.kind}`)]} />
         </div>
 
         <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
@@ -92,5 +122,27 @@ export default function EndingPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function ReplayLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+      <span className="text-slate-300">{label}</span>
+      <b className="text-white">{value}</b>
+    </div>
+  );
+}
+
+function CollectionPanel({ title, empty, items }: { title: string; empty: string; items: string[] }) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-black/45 p-5 backdrop-blur-xl">
+      <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-100"><Film size={14} /> {title}</p>
+      <div className="mt-4 grid gap-2">
+        {items.length ? items.map((item) => (
+          <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.05] p-3 text-sm leading-6 text-slate-200">{item}</div>
+        )) : <p className="text-sm leading-6 text-slate-400">{empty}</p>}
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 export type StoryEnvironment = "bedroom" | "studio" | "city" | "sunrise" | "void" | "spotlight";
 export type StoryMood = "hopeful" | "tired" | "tense" | "focused" | "lost" | "breakthrough";
+export type MemoryObjectId = "old-notebook" | "voice-note" | "photo" | "broken-clock" | "lucky-coin" | "unfinished-song" | "message-draft";
+export type MiniGameType = "hold" | "timed-choice" | "drag-memory" | "tap-particles";
 
 export type PlayerProfile = {
   name: string;
@@ -57,6 +59,12 @@ export type StoryScene = {
   environment: StoryEnvironment;
   mood: StoryMood;
   choices: StoryChoice[];
+  memoryObject?: MemoryObject;
+  secret?: boolean;
+  miniGame?: MiniGameType;
+  relationshipMoment?: RelationshipMoment;
+  moodShift?: MoodShift;
+  movieMoment?: MovieMoment;
 };
 
 export type WildCardEvent = {
@@ -68,6 +76,48 @@ export type WildCardEvent = {
   effect: ChoiceEffect;
   flags: StoryFlag[];
   rarity: "wild" | "rare";
+};
+
+export type MemoryObject = {
+  id: MemoryObjectId;
+  name: string;
+  description: string;
+  quote: string;
+  effect: ChoiceEffect;
+};
+
+export type ChaosEvent = {
+  id: string;
+  title: string;
+  narration: string;
+  kind: "strange opportunity" | "impulsive decision" | "unexpected message" | "sudden creative idea" | "risky shortcut";
+  effect: ChoiceEffect;
+  flags: StoryFlag[];
+};
+
+export type SecretSceneRecord = {
+  id: string;
+  title: string;
+  unlockedBy: string;
+};
+
+export type RelationshipMoment = {
+  role: "friend" | "stranger" | "mentor" | "old connection";
+  name: string;
+  line: string;
+};
+
+export type MoodShift = {
+  from: StoryMood;
+  to: StoryMood;
+  line: string;
+};
+
+export type MovieMoment = {
+  id: string;
+  title: string;
+  description: string;
+  rarity: "secret" | "rare";
 };
 
 export type ChoiceRecord = {
@@ -87,6 +137,12 @@ export type StoryRunState = {
   sceneHistory: string[];
   choices: ChoiceRecord[];
   wildcardsUsed: WildCardEvent[];
+  chaosUsed: boolean;
+  chaosEvents: ChaosEvent[];
+  memories: MemoryObject[];
+  secretScenesFound: SecretSceneRecord[];
+  miniGamesCompleted: string[];
+  rareMomentsTriggered: MovieMoment[];
   seed: number;
 };
 
@@ -98,6 +154,12 @@ export type EndingResult = {
   reflection: string;
   finalLine: string;
   hints: string[];
+  quote: string;
+  discoveredCount: number;
+  totalMoments: number;
+  memories: MemoryObject[];
+  secretScenesFound: SecretSceneRecord[];
+  rareMomentsTriggered: MovieMoment[];
   environment: StoryEnvironment;
   mood: StoryMood;
 };

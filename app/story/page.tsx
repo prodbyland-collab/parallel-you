@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CinematicStoryScene } from "@/components/story/CinematicStoryScene";
 import { ChoicePanel } from "@/components/story/ChoicePanel";
+import { FunLayer } from "@/components/story/FunLayer";
 import { Letterbox } from "@/components/story/Letterbox";
 import { SceneProgress } from "@/components/story/SceneProgress";
 import { SubtitleNarration } from "@/components/story/SubtitleNarration";
 import { generateEnding } from "@/lib/ending-generator";
-import { chooseSceneOption, getAllScenes, getScene, isEnding } from "@/lib/story-engine";
+import { chooseSceneOption, collectMemoryObject, completeMiniGame, getAllScenes, getScene, isEnding, triggerChaosEvent } from "@/lib/story-engine";
 import { loadStoryState, saveEnding, saveStoryState } from "@/lib/story-storage";
-import type { StoryChoice, StoryRunState } from "@/lib/story-types";
+import type { MemoryObject, StoryChoice, StoryRunState } from "@/lib/story-types";
 
 export default function StoryPage() {
   const router = useRouter();
@@ -36,6 +37,27 @@ export default function StoryPage() {
   }, []);
 
   const wildcard = useMemo(() => state?.wildcardsUsed[state.wildcardsUsed.length - 1], [state]);
+  const latestChaos = useMemo(() => state?.chaosEvents[state.chaosEvents.length - 1], [state]);
+
+  const updateRunState = (next: StoryRunState) => {
+    saveStoryState(next);
+    setState(next);
+  };
+
+  const useChaos = () => {
+    if (!state || state.chaosUsed || transitioning) return;
+    updateRunState(triggerChaosEvent(state));
+  };
+
+  const collectMemory = (memory: MemoryObject) => {
+    if (!state || transitioning) return;
+    updateRunState(collectMemoryObject(state, memory));
+  };
+
+  const markMiniGameComplete = (miniGameId: string) => {
+    if (!state || transitioning) return;
+    updateRunState(completeMiniGame(state, miniGameId));
+  };
 
   const choose = (choice: StoryChoice) => {
     if (!state || transitioning) return;
@@ -50,8 +72,7 @@ export default function StoryPage() {
         router.push("/ending");
         return;
       }
-      saveStoryState(next);
-      setState(next);
+      updateRunState(next);
       setTransitioning(false);
     }, 900);
   };
@@ -91,7 +112,24 @@ export default function StoryPage() {
             )}
             <SubtitleNarration key={scene.id} text={scene.narration} onComplete={handleNarrationComplete} />
           </div>
-          <ChoicePanel choices={scene.choices} visible={choicesVisible && !transitioning} onChoose={choose} />
+          <div className="grid gap-3">
+            <FunLayer
+              memory={scene.memoryObject}
+              memories={state.memories}
+              chaosUsed={state.chaosUsed}
+              latestChaos={latestChaos}
+              relationship={scene.relationshipMoment}
+              moodShift={scene.moodShift?.line}
+              movieMomentTitle={scene.movieMoment?.title}
+              miniGame={scene.miniGame}
+              sceneId={scene.id}
+              choicesVisible={choicesVisible && !transitioning}
+              onChaos={useChaos}
+              onCollectMemory={collectMemory}
+              onMiniGameComplete={markMiniGameComplete}
+            />
+            <ChoicePanel choices={scene.choices} visible={choicesVisible && !transitioning} onChoose={choose} />
+          </div>
         </div>
       </section>
     </main>

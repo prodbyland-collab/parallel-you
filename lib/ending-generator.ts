@@ -12,9 +12,10 @@ export function generateEnding(state: StoryRunState): EndingResult {
   const tradeoff = pickTradeoff(state);
   const environment = traits.creativity > 72 ? "studio" : traits.risk > 72 ? "city" : traits.consistency > 70 ? "sunrise" : flags.has("burned_out") ? "void" : "spotlight";
   const mood = flags.has("breakthrough_seen") || traits.consistency > 76 ? "breakthrough" : flags.has("burned_out") ? "tired" : traits.risk > 72 ? "tense" : "hopeful";
+  const discoveredCount = getDiscoveredCount(state);
 
   return {
-    title: "The Life You Directed",
+    title: pickEndingTitle(state),
     identity,
     outcome,
     tradeoff,
@@ -22,8 +23,23 @@ export function generateEnding(state: StoryRunState): EndingResult {
     mood,
     reflection: buildReflection(name, state, identity, outcome, tradeoff, language.work),
     finalLine: pickFinalLine(state),
-    hints: buildHints(state)
+    hints: buildHints(state),
+    quote: pickShareQuote(state),
+    discoveredCount,
+    totalMoments: 18,
+    memories: state.memories,
+    secretScenesFound: state.secretScenesFound,
+    rareMomentsTriggered: state.rareMomentsTriggered
   };
+}
+
+function pickEndingTitle(state: StoryRunState) {
+  if (state.secretScenesFound.some((scene) => scene.id === "secret-night-changes")) return "The Night That Kept Going";
+  if (state.chaosEvents.length && state.flags.includes("lucky_event_seen")) return "The Beautiful Wrong Turn";
+  if (state.memories.length >= 5) return "The Museum Of Almosts";
+  if (state.traits.consistency > 80) return "The Quiet Breakthrough";
+  if (state.flags.includes("burned_out")) return "The Reset After The Fire";
+  return "The Life You Directed";
 }
 
 function pickIdentity(state: StoryRunState) {
@@ -65,7 +81,10 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
   const goal = state.profile.goal;
   const whatIf = state.profile.whatIf;
   const wild = state.wildcardsUsed[0];
+  const chaos = state.chaosEvents[0];
+  const memoryLine = buildMemoryLine(state);
   const wildLine = wild ? `Then ${wild.title.toLowerCase()} changed the lighting of the story.` : "No single miracle saved the story. The small scenes did most of the work.";
+  const chaosLine = chaos ? `Also, ${chaos.title.toLowerCase()} crashed into the plot and made the serious version of the story briefly lose its shoes.` : "";
   const returnLine = state.flags.includes("returned_after_failure")
     ? `${name} quit a version of the dream once, then came back without needing applause.`
     : `${name} kept hearing the old question, but answered it through motion instead of explanation.`;
@@ -74,9 +93,11 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
     `${name} did not become ${identity.toLowerCase()} in one clean montage.`,
     `It happened through small scenes: the tired night, the visible ${work}, the choice to move when ${whatIf} tried to become the whole script.`,
     wildLine,
+    chaosLine,
+    memoryLine,
     returnLine,
     `By the end, ${goal} had become more than a wish. It had become ${outcome}, and it cost ${tradeoff}.`
-  ].join("\n\n");
+  ].filter(Boolean).join("\n\n");
 }
 
 function pickFinalLine(state: StoryRunState) {
@@ -99,4 +120,30 @@ function buildHints(state: StoryRunState) {
   if (!state.flags.includes("asked_for_help")) return [hints[0], hints[3], hints[4]];
   if (!state.flags.includes("stayed_consistent")) return [hints[2], hints[1], hints[3]];
   return [hints[4], hints[3], hints[0]];
+}
+
+function buildMemoryLine(state: StoryRunState) {
+  if (!state.memories.length) return "No keepsakes made it to the final scene, which made the ending cleaner and a little lonelier.";
+  const names = state.memories.slice(0, 3).map((memory) => memory.name.toLowerCase()).join(", ");
+  const extra = state.memories.length > 3 ? `, and ${state.memories.length - 3} more strange little proof${state.memories.length - 3 === 1 ? "" : "s"}` : "";
+  return `The ending remembered the ${names}${extra}. Tiny objects, suspicious emotional damage.`;
+}
+
+function pickShareQuote(state: StoryRunState) {
+  const memoryQuote = state.memories[state.memories.length - 1]?.quote;
+  if (memoryQuote) return memoryQuote;
+  if (state.chaosEvents.length) return "The wrong turn knew my name.";
+  if (state.secretScenesFound.length) return "I found the scene the first version missed.";
+  return pickFinalLine(state);
+}
+
+function getDiscoveredCount(state: StoryRunState) {
+  const unique = new Set<string>();
+  state.memories.forEach((memory) => unique.add(`memory:${memory.id}`));
+  state.secretScenesFound.forEach((scene) => unique.add(`secret:${scene.id}`));
+  state.rareMomentsTriggered.forEach((moment) => unique.add(`rare:${moment.id}`));
+  state.chaosEvents.forEach((event) => unique.add(`chaos:${event.id}`));
+  state.wildcardsUsed.forEach((event) => unique.add(`wild:${event.id}`));
+  state.miniGamesCompleted.forEach((miniGame) => unique.add(`mini:${miniGame}`));
+  return Math.min(18, unique.size);
 }
