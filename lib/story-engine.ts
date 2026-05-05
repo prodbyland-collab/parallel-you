@@ -1,5 +1,5 @@
 import { applyTraitEffect, createInitialTraits, createSeed, maybeCreateWildCard, pickWeighted, seededRandom } from "@/lib/random-engine";
-import { normalizeProfile, personalize } from "@/lib/personalization";
+import { normalizeProfile, personalizeScene } from "@/lib/personalization";
 import type { ChaosEvent, ChoiceRecord, MemoryObject, MovieMoment, PlayerProfile, SecretSceneRecord, StoryChoice, StoryFlag, StoryRunState, StoryScene } from "@/lib/story-types";
 
 type SceneTemplate = Omit<StoryScene, "narration" | "choices"> & {
@@ -24,7 +24,7 @@ const sceneTemplates: SceneTemplate[] = [
     },
     miniGame: "hold",
     narration: [
-      "{name} is alone in {country}, thinking about one thing that has been waiting too long: {goal}.",
+      "{name} is in {country}, carrying the life they described: {doneSoFar}.",
       "The question {whatIf} still hurts a little, but tonight it turns into something useful: a reason to finally start."
     ],
     choices: [
@@ -367,7 +367,7 @@ const sceneTemplates: SceneTemplate[] = [
     environment: "spotlight",
     mood: "breakthrough",
     narration: [
-      "The final scene gathers everything: the first promise, the missed days, the people, the risks, the proof, and the memories collected along the way.",
+      "The final scene gathers everything: where {name} started, what they had already lived through, the missed days, the people, the risks, the proof, and the memories collected along the way.",
       "This is not the only life {name} could have lived. It is the one these choices created this time."
     ],
     choices: [
@@ -677,17 +677,18 @@ function recordSceneDiscoveries(state: StoryRunState, sceneId: string) {
 
 function hydrateScene(template: SceneTemplate, state: StoryRunState): StoryScene {
   const narration = chooseNarrationVariation(template, state);
-  return {
+  return personalizeScene({
     ...template,
-    narration: personalize(narration, state.profile),
-    choices: template.choices.map((choice) => ({
-      ...choice,
-      text: personalize(choice.text, state.profile)
-    }))
-  };
+    narration,
+    choices: template.choices
+  }, state.profile);
 }
 
 function chooseNarrationVariation(template: SceneTemplate, state: StoryRunState) {
+  const previousChoice = state.choices[state.choices.length - 1];
+  const choiceAwareNarration = getChoiceAwareNarration(template, state, previousChoice?.choiceId);
+  if (choiceAwareNarration) return choiceAwareNarration;
+
   if (template.id === "behind-year" && state.flags.includes("avoided_work")) {
     return "{name} starts to feel the cost of the nights that seemed harmless. The dream is not gone, but it feels farther away because it has been waiting for action.";
   }
@@ -698,6 +699,122 @@ function chooseNarrationVariation(template: SceneTemplate, state: StoryRunState)
     return "The room is quieter than {name} expected. Success feels different when fewer people are close enough to share it, so this moment becomes about who still matters.";
   }
   return template.narration.join(" ");
+}
+
+function getChoiceAwareNarration(template: SceneTemplate, state: StoryRunState, previousChoiceId?: string) {
+  if (!previousChoiceId) return null;
+  const detail = getRunDetail(state);
+
+  const lines: Record<string, Partial<Record<string, string>>> = {
+    "first-morning": {
+      "one-hour": "{name} wakes up knowing they actually started last night. It was only 20 minutes, but it makes the morning feel different.",
+      rest: "{name} wakes up after choosing rest. The goal is still there, and now the question is whether rest becomes recovery or another delay.",
+      message: "The morning starts with the memory of that honest text. Asking for support made the goal feel less private and a little more real."
+    },
+    "first-share": {
+      routine: "{name} keeps the tiny habit alive for one more day. It is not dramatic, but now there is something real enough to show.",
+      "big-plan": "{name} spends the morning planning, but the blank space still asks for action. At some point the plan needs a rough first version.",
+      scroll: "{name} loses time to the phone and feels the familiar guilt afterward. Still, the day is not over, and the rough {work} is waiting."
+    },
+    "comfortable-loop": {
+      share: "{name} shares the rough version and then checks too often to see if anyone noticed. The silence feels loud, but the work is no longer hidden.",
+      "keep-private": "{name} saves the work privately and promises to improve it later. A week passes, and later starts sounding a lot like never.",
+      "ask-feedback": "One honest person sees the rough version. Their reply is not magic, but it gives {name} something specific to work with."
+    },
+    "pressure-invitation": {
+      "break-loop": "Because {name} broke the loop instead of waiting for motivation, the work starts moving again. Then a small {opportunity} appears earlier than expected.",
+      "stay-loop": "{name} lets another week pass, and the opportunity arrives anyway. It feels uncomfortable because the work is not as ready as it could be.",
+      "small-help": "The check-in helps more than {name} expected. Staying connected keeps the work warm long enough for a new {opportunity} to appear."
+    },
+    "behind-year": {
+      "say-yes": "{name} says yes before feeling ready. The year gets louder after that, and every choice starts showing what kind of pressure this path creates.",
+      wait: "{name} asks for more time. It is reasonable, but it also reveals a pattern: preparation can help, and it can also become hiding.",
+      "bring-friend": "{name} lets someone into the decision. That makes the year feel less lonely, even when the work itself is still hard."
+    },
+    "public-pressure": {
+      return: "{name} restarts smaller, and the smaller plan actually moves. The {work} begins reaching people who do not already know the story.",
+      quit: "{name} stops for a while, but the unfinished work keeps sitting there. When it finally reaches people, it feels surprising and uncomfortable.",
+      "risk-reset": "{name} changes the plan completely. That risk makes the work easier to notice, but also easier for strangers to judge."
+    },
+    "relationship-cost": {
+      "own-it": "Because {name} keeps showing up publicly, more people notice the work. At the same time, people close to {name} start noticing the distance.",
+      hide: "{name} pulls back from attention, and the quiet feels safe for a moment. But the same quiet also starts showing up in personal relationships.",
+      learn: "{name} uses the feedback instead of running from it. Progress becomes more real, but it starts taking more time from the rest of life."
+    },
+    "burnout-edge": {
+      "make-time": "{name} makes time for someone important, and the night feels softer. The work is still there tomorrow, but now the body asks to be included too.",
+      "lock-in": "{name} ignores the message and keeps working. The progress is real, but the body and the people around {name} both start feeling the cost.",
+      explain: "{name} replies honestly instead of pretending everything is fine. The conversation helps, but it also makes the tiredness harder to ignore."
+    },
+    "unexpected-door": {
+      repair: "{name} lowers the pressure and recovers a little. That slower week does not ruin the story; it makes the next open door easier to notice.",
+      force: "{name} pushes through with coffee and willpower. It works for a while, but the next opportunity arrives while the body is still paying for it.",
+      vanish: "{name} disappears for a while. When a door opens later, it feels lucky, but also loaded with everything left unanswered."
+    },
+    "second-failure": {
+      "step-through": "{name} says yes and figures it out step by step. Some parts work, some parts do not, and one failure lands harder because the chance mattered.",
+      "prepare-first": "{name} prepares carefully before saying yes. Even then, preparation does not protect the story from every mistake.",
+      "miss-it": "{name} leaves the message unanswered too long. Missing the chance hurts in a quiet way, and the next failure feels personal."
+    },
+    "first-real-proof": {
+      "come-back": "{name} fixes one obvious mistake and tries again. That small repair becomes the first proof that the story is not over.",
+      "blame-world": "{name} blames the situation and changes very little at first. The proof comes later, after the anger stops being useful.",
+      "ask-mentor": "{name} asks someone better what they would do next. The advice is simple, almost annoying, and it helps."
+    },
+    "major-turning-point": {
+      "build-system": "{name} writes down what worked and turns it into a routine. That makes the next big choice feel less random and more earned.",
+      "chase-high": "{name} tries to force another win immediately. The pressure rises, and the next choice becomes about whether to chase or build.",
+      "share-credit": "{name} celebrates with someone who helped. The win feels warmer, and the next choice includes more than ambition."
+    },
+    "who-stayed": {
+      "choose-known": "{name} chooses the stable path. It is not flashy, but it creates enough quiet to notice who has been there all along.",
+      "choose-next": "{name} takes the bigger risk. The future opens wider, but the first thing that becomes clear is who can handle the distance.",
+      "choose-balanced": "{name} chooses steady growth and protects some peace. That makes room to see the people who stayed."
+    },
+    "final-room": {
+      "call-someone": "{name} calls the person who kept believing. The room feels different afterward, because the ending is not being carried alone.",
+      "stand-alone": "{name} keeps the win private. The room is calm, but also quiet enough to show what sharing might have changed.",
+      "thank-them": "{name} sends a real thank-you before the moment passes. It is small, but it gives the ending a softer shape."
+    },
+    "ending-gate": {
+      forgive: "{name} stops punishing themselves for starting late. The final scene can finally look at the whole path without turning every delay into shame.",
+      "keep-hunger": "{name} keeps improving, but with a kinder voice. The ending is not perfect, but it feels more livable.",
+      "begin-again": "{name} chooses one small thing to begin again tomorrow. That makes the ending feel less like a finish line and more like a real morning."
+    },
+    "secret-room-smaller": {
+      "stay-loop": "{name} says tomorrow again, and this time the story pauses long enough to show the pattern clearly. The room feels smaller because the same choice keeps repeating.",
+      scroll: "{name} loses another hour to the phone. Nothing explodes, but the room feels smaller because the goal is still waiting.",
+      hide: "{name} goes quiet when attention gets uncomfortable. The quiet becomes a room of its own, and it is smaller than expected.",
+      vanish: "{name} disappears for a while, and the story has to sit inside that silence."
+    },
+    "secret-quiet-breakthrough": {
+      "build-system": "{name} keeps the routine going when it is no longer exciting. That is why the breakthrough arrives quietly instead of dramatically.",
+      routine: "{name} repeats the small habit again. Nothing announces itself, but the proof starts collecting in the background.",
+      "choose-balanced": "{name} chooses the sustainable path, and the quiet work finally has enough space to show results."
+    },
+    "secret-night-changes": {
+      "choose-next": "{name} takes the bigger risk, so the night answers with a bigger decision. It feels real because the fear is real too.",
+      "step-through": "{name} has already said yes once without feeling ready. Tonight asks for that same courage again.",
+      "risk-reset": "{name} changed the plan before, and now another risky turn appears. This time, the stakes feel closer to real life."
+    }
+  };
+
+  const base = lines[template.id]?.[previousChoiceId];
+  if (!base) return null;
+  return `${base} ${detail}`;
+}
+
+function getRunDetail(state: StoryRunState) {
+  const parsed = state.profile.parsedProfile;
+  const vocabulary = parsed?.personalVocabulary ?? ["work", "room", "message"];
+  const details = [
+    "A phone lights up on the desk and gets ignored for once.",
+    "The room is not cleaner, but the decision feels clearer.",
+    "Somewhere in the background, normal life keeps going.",
+    `One small word keeps coming back: ${vocabulary[(state.seed + state.choices.length) % vocabulary.length]}.`,
+    "It is the kind of moment that would be easy to miss if nobody filmed it."
+  ];
+  return details[(state.seed + state.choices.length * 3) % details.length];
 }
 
 function mergeFlags(current: StoryFlag[], incoming: StoryFlag[]) {

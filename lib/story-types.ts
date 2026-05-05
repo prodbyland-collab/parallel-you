@@ -7,12 +7,37 @@ export type PlayerProfile = {
   name: string;
   age: number;
   country: string;
+  doneSoFar: string;
+  goals: string;
   goal: string;
   whatIf: string;
   discipline: number;
+  consistency: number;
   risk: number;
   creativity: number;
   social: number;
+  confidence: number;
+  parsedProfile?: ParsedUserProfile;
+};
+
+export type GoalCategory = "music" | "business" | "fitness" | "writing" | "career" | "school" | "relationship" | "personal" | "general";
+export type ExperienceLevel = "starting" | "some experience" | "experienced";
+export type EmotionalTone = "hopeful" | "frustrated but hopeful" | "tired" | "confident" | "uncertain" | "stuck";
+
+export type ParsedUserProfile = {
+  mainGoal: string;
+  goalCategory: GoalCategory;
+  experienceLevel: ExperienceLevel;
+  emotionalTone: EmotionalTone;
+  discipline: number;
+  consistency: number;
+  risk: number;
+  creativity: number;
+  social: number;
+  confidence: number;
+  keyThemes: string[];
+  possibleRegrets: string[];
+  personalVocabulary: string[];
 };
 
 export type HiddenTraits = {

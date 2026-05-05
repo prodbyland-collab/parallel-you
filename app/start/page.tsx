@@ -1,103 +1,193 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clapperboard, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clapperboard, Play } from "lucide-react";
 import Link from "next/link";
+import { parseUserProfile } from "@/lib/profile-parser";
 import { createInitialRun } from "@/lib/story-engine";
 import { clearStoryState, saveStoryState } from "@/lib/story-storage";
 import type { PlayerProfile } from "@/lib/story-types";
 
-const initialProfile: PlayerProfile = {
+type IntroInput = {
+  name: string;
+  age: number;
+  country: string;
+  doneSoFar: string;
+  goals: string;
+};
+
+const initialInput: IntroInput = {
   name: "",
   age: 25,
   country: "",
-  goal: "",
-  whatIf: "",
-  discipline: 5,
-  risk: 5,
-  creativity: 5,
-  social: 5
+  doneSoFar: "",
+  goals: ""
 };
 
-const questions = [
-  { key: "name", label: "Name or nickname", placeholder: "Giorgi", type: "text" },
-  { key: "age", label: "Age", placeholder: "25", type: "number" },
-  { key: "country", label: "Country", placeholder: "Georgia", type: "text" },
-  { key: "goal", label: "What do you want to work toward?", placeholder: "Make music, build a company, get healthier...", type: "textarea" },
-  { key: "whatIf", label: "What question still follows you?", placeholder: "What if I had started earlier?", type: "textarea" }
-] as const;
-
-const sliders = [
-  { key: "discipline", label: "How consistent are you right now?" },
-  { key: "risk", label: "How comfortable are you with risk?" },
-  { key: "creativity", label: "How creative do you feel lately?" },
-  { key: "social", label: "How much do people energize you?" }
+const steps = [
+  {
+    key: "name",
+    question: "What should we call you?",
+    hint: "A name, nickname, or whatever feels like you.",
+    placeholder: "Giorgi",
+    type: "text"
+  },
+  {
+    key: "age",
+    question: "How old are you?",
+    hint: "This helps place the story in your real life.",
+    placeholder: "25",
+    type: "number"
+  },
+  {
+    key: "country",
+    question: "Where are you right now?",
+    hint: "Country, city, or the place this chapter starts.",
+    placeholder: "Georgia",
+    type: "text"
+  },
+  {
+    key: "doneSoFar",
+    question: "What has your life been like so far?",
+    hint: "Write naturally. What have you tried, avoided, built, lost, repeated, or kept thinking about?",
+    placeholder: "I make music but I am inconsistent. I have posted a few beats, but I keep stopping...",
+    type: "textarea"
+  },
+  {
+    key: "goals",
+    question: "What do you want to become?",
+    hint: "Say it plainly. The story will listen for the real goal underneath.",
+    placeholder: "I want to become a successful producer and finally release music people care about.",
+    type: "textarea"
+  }
 ] as const;
 
 export default function StartPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState(initialProfile);
+  const [input, setInput] = useState<IntroInput>(initialInput);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [isStarting, setIsStarting] = useState(false);
 
-  const updateProfile = (key: keyof PlayerProfile, value: string | number) => {
-    setProfile((current) => ({ ...current, [key]: value }));
+  const step = steps[stepIndex];
+  const isFinalScreen = stepIndex === steps.length;
+  const progressLabel = isFinalScreen ? "Ready" : `${stepIndex + 1} / ${steps.length}`;
+  const canContinue = useMemo(() => {
+    if (isFinalScreen) return true;
+    const value = input[step.key as keyof IntroInput];
+    if (typeof value === "number") return value > 0;
+    return value.trim().length > 0;
+  }, [input, isFinalScreen, step]);
+
+  const updateInput = (key: keyof IntroInput, value: string | number) => {
+    setInput((current) => ({ ...current, [key]: value }));
+  };
+
+  const next = () => {
+    if (!canContinue) return;
+    setStepIndex((current) => Math.min(current + 1, steps.length));
+  };
+
+  const previous = () => {
+    setStepIndex((current) => Math.max(0, current - 1));
   };
 
   const begin = () => {
+    setIsStarting(true);
     clearStoryState();
+    const parsedProfile = parseUserProfile(input);
+    const profile: PlayerProfile = {
+      name: input.name,
+      age: input.age,
+      country: input.country,
+      doneSoFar: input.doneSoFar,
+      goals: input.goals,
+      goal: parsedProfile.mainGoal,
+      whatIf: parsedProfile.possibleRegrets[0] ?? input.doneSoFar,
+      discipline: parsedProfile.discipline,
+      consistency: parsedProfile.consistency,
+      risk: parsedProfile.risk,
+      creativity: parsedProfile.creativity,
+      social: parsedProfile.social,
+      confidence: parsedProfile.confidence,
+      parsedProfile
+    };
     const run = createInitialRun(profile);
     saveStoryState(run);
-    router.push("/story");
+    window.setTimeout(() => router.push("/story"), 700);
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#03040a] px-5 py-6 sm:px-8">
-      <div className="particle-field" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(34,211,238,0.16),transparent_28rem),radial-gradient(circle_at_80%_60%,rgba(217,70,239,0.12),transparent_25rem)]" />
-      <div className="relative z-10 mx-auto max-w-6xl">
+    <main className="relative min-h-screen overflow-hidden bg-[#08090d] px-5 py-6 text-white sm:px-8">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(148,163,184,0.13),transparent_24rem),radial-gradient(circle_at_78%_62%,rgba(251,191,36,0.08),transparent_22rem)]" />
+      <div className="ambient-dust" />
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] max-w-5xl flex-col">
         <nav className="flex items-center justify-between">
           <Link href="/" className="game-button"><ArrowLeft size={16} /> Back</Link>
           <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.24em] text-slate-100">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-void"><Clapperboard size={18} /></span>
-            Story Setup
+            Direct Your Life
           </div>
         </nav>
 
-        <section className="grid min-h-[calc(100vh-6rem)] items-center gap-8 py-12 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <p className="cinema-kicker">Before we start</p>
-            <h1 className="mt-4 text-5xl font-black leading-[0.92] text-white md:text-7xl">Tell us a little about you.</h1>
-            <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
-              Your answers shape the story. There are no grades or quiz results, just choices and a future that reacts to you.
-            </p>
-          </div>
-
-          <div className="cinema-panel p-5 sm:p-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {questions.map((question) => (
-                <label key={question.key} className={question.type === "textarea" ? "sm:col-span-2" : ""}>
-                  <span className="mb-2 block text-sm font-bold text-slate-300">{question.label}</span>
-                  {question.type === "textarea" ? (
-                    <textarea value={String(profile[question.key])} onChange={(event) => updateProfile(question.key, event.target.value)} placeholder={question.placeholder} className="min-h-24 w-full resize-none rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70" />
-                  ) : (
-                    <input value={String(profile[question.key])} onChange={(event) => updateProfile(question.key, question.type === "number" ? Number(event.target.value) : event.target.value)} placeholder={question.placeholder} type={question.type} className="w-full rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70" />
-                  )}
-                </label>
-              ))}
+        <section className="grid flex-1 place-items-center py-12">
+          <div className="w-full max-w-3xl">
+            <div className="mb-8 flex items-center justify-between text-xs font-black uppercase tracking-[0.22em] text-slate-400">
+              <span>Opening scene</span>
+              <span>{progressLabel}</span>
             </div>
 
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              {sliders.map((slider) => (
-                <label key={slider.key}>
-                  <span className="mb-2 block text-sm font-bold text-slate-300">{slider.label}</span>
-                  <input type="range" min="1" max="10" value={profile[slider.key]} onChange={(event) => updateProfile(slider.key, Number(event.target.value))} className="w-full accent-cyan-300" />
-                </label>
-              ))}
-            </div>
+            <div className="intro-scene rounded-[1.75rem] border border-white/10 bg-black/35 p-5 shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-8">
+              {!isFinalScreen ? (
+                <div key={step.key} className="intro-step">
+                  <p className="cinema-kicker">Before the story starts</p>
+                  <h1 className="mt-4 text-4xl font-black leading-tight text-white sm:text-6xl">{step.question}</h1>
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">{step.hint}</p>
 
-            <button onClick={begin} className="mt-7 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-base font-black text-void transition hover:scale-[1.01] hover:bg-cyan-100">
-              <Play size={18} fill="currentColor" /> Start the Story
-            </button>
+                  <div className="mt-8">
+                    {step.type === "textarea" ? (
+                      <textarea
+                        value={String(input[step.key])}
+                        onChange={(event) => updateInput(step.key, event.target.value)}
+                        placeholder={step.placeholder}
+                        autoFocus
+                        className="min-h-52 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-lg leading-8 text-white outline-none transition placeholder:text-slate-500 focus:border-white/30"
+                      />
+                    ) : (
+                      <input
+                        value={String(input[step.key])}
+                        onChange={(event) => updateInput(step.key, step.type === "number" ? Number(event.target.value) : event.target.value)}
+                        placeholder={step.placeholder}
+                        type={step.type}
+                        autoFocus
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-2xl font-bold text-white outline-none transition placeholder:text-slate-500 focus:border-white/30"
+                      />
+                    )}
+                  </div>
+
+                  <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <button onClick={previous} disabled={stepIndex === 0} className="game-button justify-center disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+                    <button onClick={next} disabled={!canContinue} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-black text-void transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-45">
+                      Continue <ArrowRight size={17} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="intro-step py-8 text-center">
+                  <p className="cinema-kicker">Opening scene ready</p>
+                  <h1 className="mx-auto mt-4 max-w-2xl text-4xl font-black leading-tight text-white sm:text-6xl">Alright... let&apos;s see where your story goes.</h1>
+                  <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300">
+                    We will not show scores or labels. Your words quietly shape the scenes, choices, memories, and ending.
+                  </p>
+                  <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-center">
+                    <button onClick={previous} className="game-button justify-center">Previous</button>
+                    <button onClick={begin} disabled={isStarting} className="inline-flex items-center justify-center gap-3 rounded-full bg-white px-7 py-4 text-base font-black text-void transition hover:bg-slate-200 disabled:cursor-wait disabled:opacity-60">
+                      <Play size={18} fill="currentColor" /> {isStarting ? "Starting..." : "Start the Story"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>

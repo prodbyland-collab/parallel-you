@@ -31,11 +31,11 @@ export function createInitialTraits(profile: PlayerProfile, seed: number): Hidde
   const random = seededRandom(seed);
   return {
     discipline: profile.discipline * 8 + random() * 12,
-    consistency: profile.discipline * 7 + random() * 10,
+    consistency: profile.consistency * 8 + random() * 10,
     risk: profile.risk * 8 + random() * 12,
     creativity: profile.creativity * 8 + random() * 12,
     social: profile.social * 8 + random() * 12,
-    luck: 30 + random() * 45
+    luck: 24 + profile.confidence * 4 + random() * 24
   };
 }
 

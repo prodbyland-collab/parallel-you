@@ -91,7 +91,7 @@ function buildReflection(name: string, state: StoryRunState, identity: string, o
 
   return [
     `${name} started with a simple wish: ${goal}.`,
-    `At first it was only a thought in a quiet room. Then it became a small action, then a visible ${work}, then a pattern of choices that either helped or slowed the dream down.`,
+    `Before the story began, this was already true: ${state.profile.doneSoFar}. Then it became a small action, then a visible ${work}, then a pattern of choices that either helped or slowed the dream down.`,
     wildLine,
     chaosLine,
     memoryLine,
