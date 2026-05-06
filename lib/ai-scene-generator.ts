@@ -1,7 +1,6 @@
 import { filterRepeatedChoices, isTextTooSimilar } from "@/lib/anti-repeat";
 import { callAIWriter } from "@/lib/ai-writer";
 import type { DirectorDecision } from "@/lib/ai-story-director";
-import { seededRandom } from "@/lib/random-engine";
 import type { StoryState } from "@/lib/story-state";
 import type { MemoryObject, StoryChoice, StoryEnvironment, StoryMood, StoryScene } from "@/lib/story-types";
 
@@ -22,16 +21,25 @@ type AdaptiveSceneDraft = {
   consequencePreview?: string;
 };
 
+export class AISceneGenerationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AISceneGenerationError";
+  }
+}
+
 export async function generateAdaptiveScene(storyState: StoryState, directorDecision: DirectorDecision): Promise<StoryScene> {
-  const fallback = fallbackAdaptiveScene(storyState, directorDecision);
   const raw = await callAIWriter(buildScenePrompt(storyState, directorDecision));
-  if (!raw) return fallback;
+  if (!raw) throw new AISceneGenerationError("AI returned no scene text.");
   try {
-    const draft = normalizeDraft(JSON.parse(raw), fallback, storyState, directorDecision);
-    if (isTextTooSimilar(`${draft.title} ${draft.narration}`, storyState.shownTexts)) return fallback;
+    const draft = normalizeDraft(JSON.parse(raw), storyState, directorDecision);
+    if (isTextTooSimilar(`${draft.title} ${draft.narration}`, storyState.shownTexts)) {
+      throw new AISceneGenerationError("AI scene was too similar to previous story text.");
+    }
     return draft;
-  } catch {
-    return fallback;
+  } catch (error) {
+    if (error instanceof AISceneGenerationError) throw error;
+    throw new AISceneGenerationError("AI scene JSON could not be parsed or normalized.");
   }
 }
 
@@ -69,6 +77,7 @@ Use:
 - user profile: ${storyState.profile.doneSoFar} / ${storyState.profile.goals || storyState.profile.goal}
 - goal category: ${storyState.profile.parsedProfile?.goalCategory ?? "general"}
 - current act: ${storyState.currentAct}
+- scene index: ${storyState.sceneIndex}
 - emotional target: ${decision.emotionalTarget}
 - open threads: ${storyState.consequenceThreads.map((thread) => `${thread.id}:${thread.theme}:${thread.status}`).join(" | ") || "none"}
 - repeated patterns: ${storyState.repeatedPatterns.join(", ") || "none"}
@@ -113,111 +122,44 @@ Return strict JSON only:
 `;
 }
 
-function normalizeDraft(value: Partial<AdaptiveSceneDraft>, fallback: StoryScene, storyState: StoryState, decision: DirectorDecision): StoryScene {
+function normalizeDraft(value: Partial<AdaptiveSceneDraft>, storyState: StoryState, decision: DirectorDecision): StoryScene {
+  if (!value || typeof value !== "object") throw new AISceneGenerationError("Scene draft is empty.");
+  const narrationLines = Array.isArray(value.narrationLines) ? value.narrationLines.filter(Boolean).slice(0, 3) : [];
+  if (!value.title || narrationLines.length === 0) throw new AISceneGenerationError("Scene draft is missing title or narration.");
+
   const choices = decision.shouldUseNoChoiceMoment
     ? []
     : filterRepeatedChoices((value.choices ?? []).slice(0, 3).map((choice, index) => ({
         ...choice,
-        id: choice.id || `adaptive_choice_${storyState.sceneIndex}_${index}`,
-        text: choice.text || fallback.choices[index]?.text || "Do one small real thing",
-        effect: choice.effect ?? choice.effects ?? fallback.choices[index]?.effect ?? {},
-        flags: choice.flagsAdded ?? choice.flags ?? fallback.choices[index]?.flags ?? [],
-        consequenceHint: choice.consequenceHint || fallback.choices[index]?.consequenceHint || "The room changes a little."
-      })), storyState.shownChoices);
+        id: choice.id || `ai_choice_${storyState.sceneIndex}_${index}`,
+        text: choice.text,
+        effect: choice.effect ?? choice.effects ?? {},
+        flags: choice.flagsAdded ?? choice.flags ?? [],
+        consequenceHint: choice.consequenceHint || "The room changes a little."
+      })).filter((choice) => Boolean(choice.text)), storyState.shownChoices);
+
+  if (!decision.shouldUseNoChoiceMoment && choices.length < 2) {
+    throw new AISceneGenerationError("AI scene did not include enough usable choices.");
+  }
 
   return {
-    ...fallback,
-    id: value.id || `adaptive_${storyState.sceneIndex + 1}`,
+    id: value.id || `ai_scene_${storyState.randomSeed}_${storyState.sceneIndex + 1}`,
     act: storyState.currentAct,
-    title: value.title || fallback.title,
-    narration: (value.narrationLines?.slice(0, 3) ?? fallback.narration.split(/(?<=[.!?])\s+/)).join(" "),
-    environment: value.environment ?? fallback.environment,
-    mood: value.mood ?? fallback.mood,
-    firstPersonCut: decision.shouldUseFirstPersonCut ? value.firstPersonCut ?? fallback.firstPersonCut : undefined,
+    title: value.title,
+    year: 2026 + Math.floor(storyState.sceneIndex / 4),
+    narration: narrationLines.join(" "),
+    environment: value.environment ?? "bedroom",
+    mood: value.mood ?? "focused",
+    firstPersonCut: decision.shouldUseFirstPersonCut ? value.firstPersonCut : undefined,
     noChoiceMoment: decision.shouldUseNoChoiceMoment,
-    relationshipMoment: decision.shouldIntroduceRelationshipMoment ? fallback.relationshipMoment ?? {
+    relationshipMoment: decision.shouldIntroduceRelationshipMoment ? {
       role: "friend",
       name: "Someone",
       line: "You still doing that thing?"
     } : undefined,
-    memoryObject: value.memoryObject ?? fallback.memoryObject,
+    memoryObject: value.memoryObject,
     choices: decision.shouldUseNoChoiceMoment
       ? [{ id: `auto_${storyState.sceneIndex}`, text: "Let it happen", effect: { regret: 1, momentum: 1 }, auto: true }]
-      : choices.length >= 2 ? choices : fallback.choices.slice(0, 3)
-  };
-}
-
-function fallbackAdaptiveScene(storyState: StoryState, decision: DirectorDecision): StoryScene {
-  const random = seededRandom(storyState.randomSeed + storyState.sceneIndex * 31);
-  const detail = storyState.realLifeExamples.sceneDetails[Math.floor(random() * storyState.realLifeExamples.sceneDetails.length)] ?? "sitting in a quiet room";
-  const title = titleFromDecision(decision);
-  const mood = moodFromTarget(decision.emotionalTarget);
-  const environment = environmentFromDetail(detail);
-  const choices = fallbackChoices(storyState, detail, random).filter((choice) => !storyState.shownChoices.includes(choice.text)).slice(0, 3);
-
-  return {
-    id: `adaptive_${storyState.sceneIndex + 1}`,
-    act: storyState.currentAct,
-    title,
-    year: 2026 + Math.floor(storyState.sceneIndex / 4),
-    narration: `You catch yourself ${detail}. It feels ordinary, which is how it gets away with it.`,
-    environment,
-    mood,
-    noChoiceMoment: decision.shouldUseNoChoiceMoment,
-    firstPersonCut: decision.shouldUseFirstPersonCut ? {
-      id: `cut_${storyState.sceneIndex}`,
-      title: "For a second, nothing performs.",
-      detail,
-      kind: "still"
-    } : undefined,
-    choices: decision.shouldUseNoChoiceMoment
-      ? [{ id: `auto_${storyState.sceneIndex}`, text: "Let the moment pass", effect: { regret: 1, fatigue: -1 }, auto: true }]
       : choices
   };
-}
-
-function fallbackChoices(storyState: StoryState, detail: string, random: () => number): StoryChoice[] {
-  const category = storyState.profile.parsedProfile?.goalCategory ?? "general";
-  const pools: Record<string, string[]> = {
-    music: ["Export it before changing the drums again", "Send the rough beat to one person", "Start another loop and pretend it helps"],
-    business: ["Fix the headline one more time", "Send the client message before pacing", "Delay the launch and call it research"],
-    fitness: ["Put on shoes and walk outside", "Do the ugly 20-minute workout", "Choose sleep and leave the shoes by the door"],
-    writing: ["Write one bad page", "Delete the sentence you keep protecting", "Open old notes and steal one useful line"],
-    general: ["Reply before the message disappears", "Do one small useful thing", "Do nothing and feel the day pass"]
-  };
-  const pool = pools[category] ?? pools.general;
-  return pool.map((text, index) => ({
-    id: `fallback_${storyState.sceneIndex}_${index}`,
-    text,
-    type: index === 2 ? "avoid" : index === 1 ? "risk" : "work",
-    effect: index === 2 ? { regret: 5, momentum: -3 } : { momentum: 5, confidence: 2, fatigue: random() > 0.5 ? 2 : 0 },
-    flags: index === 2 ? ["avoided_work"] : index === 1 ? ["took_big_risk"] : ["stayed_consistent"],
-    createsThread: index === 2 ? "avoidance_cost" : undefined,
-    endingInfluence: `${text} after ${detail}`,
-    consequenceHint: index === 2 ? "The ordinary delay gets another receipt." : "The small action leaves proof."
-  }));
-}
-
-function titleFromDecision(decision: DirectorDecision) {
-  if (decision.action === "trigger_callback") return "It Comes Back";
-  if (decision.action === "create_pressure") return "Something Waits";
-  if (decision.action === "trigger_wildcard") return "The Odd Little Turn";
-  if (decision.action === "create_turning_point") return "The Small Turn";
-  if (decision.action === "slow_down") return "A Quieter Minute";
-  return "The Next Ordinary Thing";
-}
-
-function moodFromTarget(target: DirectorDecision["emotionalTarget"]): StoryMood {
-  if (target === "breakthrough") return "breakthrough";
-  if (target === "tense" || target === "regretful" || target === "uncertain") return "tense";
-  if (target === "empty") return "lost";
-  if (target === "warm" || target === "hopeful") return "hopeful";
-  return "focused";
-}
-
-function environmentFromDetail(detail: string): StoryEnvironment {
-  if (/walk|gym|analytics|client|street|outside/i.test(detail)) return "city";
-  if (/track|beat|file|draft|page|landing|laptop|daw|studio/i.test(detail)) return "studio";
-  if (/morning|shoes|sun/i.test(detail)) return "sunrise";
-  return "bedroom";
 }
