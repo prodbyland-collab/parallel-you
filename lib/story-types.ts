@@ -79,10 +79,26 @@ export type ChoiceEffect = Partial<Omit<HiddenTraits, "luck">> & {
   luck?: number;
 };
 
+export type ChoiceBehaviorType =
+  | "honesty"
+  | "avoidance"
+  | "risk"
+  | "connection"
+  | "isolation"
+  | "perfectionism"
+  | "consistency"
+  | "self_sabotage"
+  | "returning"
+  | "escape";
+
 export type StoryChoice = {
   id: string;
   text: string;
   type?: "work" | "avoid" | "risk" | "social" | "rest" | "repair" | "finish" | "start_over";
+  behaviorType?: ChoiceBehaviorType;
+  immediateConsequence?: string;
+  butterflyEffect?: string;
+  hiddenTraitEffects?: ChoiceEffect;
   effect: ChoiceEffect;
   effects?: ChoiceEffect;
   flags?: StoryFlag[];
@@ -211,6 +227,7 @@ export type StoryRunState = {
   storySignature: string;
   replayCount: number;
   seed: number;
+  butterflyEffects?: import("@/lib/butterfly-engine").ButterflyEffect[];
 };
 
 export type ConsequenceThread = {
