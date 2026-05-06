@@ -21,6 +21,15 @@ import { toStoryState } from "@/lib/story-state";
 import { getStoryTextHistory, hasSimilarStorySignature, loadStoryState, saveEnding, saveStorySignature, saveStoryState, saveStoryTextHistory } from "@/lib/story-storage";
 import type { MemoryObject, StoryChoice, StoryRunState, StoryScene } from "@/lib/story-types";
 
+const HARD_SCENE_TIMEOUT_MS = 24000;
+
+function withTimeout<T>(promise: Promise<T>, fallback: T, ms = HARD_SCENE_TIMEOUT_MS): Promise<T> {
+  return new Promise((resolve) => {
+    const timeout = window.setTimeout(() => resolve(fallback), ms);
+    promise.then((value) => resolve(value)).catch(() => resolve(fallback)).finally(() => window.clearTimeout(timeout));
+  });
+}
+
 export default function StoryPage() {
   const router = useRouter();
   const [state, setState] = useState<StoryRunState | null>(null);
@@ -41,7 +50,7 @@ export default function StoryPage() {
   }, [router]);
 
   const baseScene = useMemo(() => state ? getScene(state) : null, [state]);
-  const scene = baseScene && generatedScene?.id === baseScene.id ? generatedScene : sceneLoading ? null : baseScene;
+  const scene = generatedScene ?? (sceneLoading ? null : baseScene);
   const allScenes = useMemo(() => state ? getAllScenes(state) : [], [state]);
   const progressIndex = state ? Math.max(0, allScenes.findIndex((item) => item.id === state.currentSceneId)) : 0;
 
@@ -49,34 +58,45 @@ export default function StoryPage() {
     if (!state || !baseScene) return;
     let cancelled = false;
     setGeneratedScene(null);
+    setConsequenceLines([]);
     setChoicesVisible(false);
+    setTransitioning(false);
     setSceneLoading(true);
-    const fallbackTimer = window.setTimeout(() => {
-      if (cancelled) return;
-      setGeneratedScene(baseScene);
-      setSceneLoading(false);
-    }, 9000);
+
     const adaptiveState = toStoryState(state, getStoryTextHistory());
-    directNextStep(adaptiveState).then(async (decision) => {
+    const loadScene = async () => {
+      const decisionFallback: DirectorDecision = {
+        action: "continue_story",
+        reason: "Fallback scene direction.",
+        nextScenePurpose: "Continue from the last choice with a grounded real-life moment.",
+        emotionalTarget: "quiet",
+        shouldUseFirstPersonCut: false,
+        shouldUseNoChoiceMoment: false,
+        shouldIntroduceRelationshipMoment: false,
+        endingReadinessScore: adaptiveState.endingReadinessScore,
+        avoid: adaptiveState.avoid
+      };
+      const decision = await withTimeout(directNextStep(adaptiveState), decisionFallback);
       if (cancelled) return;
       setDirectorDecision(decision);
-      const nextScene = await generateAdaptiveScene(adaptiveState, decision);
+      const nextScene = await withTimeout(generateAdaptiveScene(adaptiveState, decision), baseScene);
       if (cancelled) return;
-      window.clearTimeout(fallbackTimer);
       setGeneratedScene(nextScene);
       saveStoryTextHistory([nextScene.title, nextScene.narration, ...nextScene.choices.map((choice) => choice.text)]);
       setSceneLoading(false);
-    }).catch(() => {
+    };
+
+    loadScene().catch((error) => {
+      console.error("Scene loading failed", error);
       if (cancelled) return;
-      window.clearTimeout(fallbackTimer);
       setGeneratedScene(baseScene);
       setSceneLoading(false);
     });
+
     return () => {
       cancelled = true;
-      window.clearTimeout(fallbackTimer);
     };
-  }, [allScenes, baseScene, state]);
+  }, [baseScene?.id, state?.storySignature]);
 
   const handleNarrationComplete = useCallback(() => {
     window.setTimeout(() => setChoicesVisible(true), 500);
@@ -110,31 +130,53 @@ export default function StoryPage() {
     setChoicesVisible(false);
     setTransitioning(true);
     window.setTimeout(async () => {
-      const memory = createStoryMemory(state, scene, allScenes, getEndingHistory(), choice, getStoryTextHistory());
-      const consequence = await generateConsequenceWithAI(choice, memory);
-      setConsequenceLines(consequence.consequenceLines);
-      saveStoryTextHistory([choice.text, ...consequence.consequenceLines]);
-      const processed = processChoice(choice, state, scene);
-      const next = applyGeneratedConsequence(processed, consequence.consequenceLines, consequence.delayedFlag);
-      const adaptiveState = toStoryState(next, getStoryTextHistory());
-      const decision = await directNextStep(adaptiveState);
-      const shouldEnd = decision.action === "move_to_ending" || decision.endingReadinessScore >= 88 || next.sceneHistory.length >= 25;
-      if (shouldEnd) {
-        const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
-        const history = getEndingHistory();
-        const draftEnding = await generateAdaptiveEnding(toStoryState(finalState, getStoryTextHistory()), finalState, history);
-        const ending = isEndingTooSimilar(draftEnding, history) ? regenerateEndingVariant(draftEnding, finalState.profile, finalState) : draftEnding;
-        saveStoryState(finalState);
-        saveEnding(ending);
-        saveEndingHistory(ending);
-        saveStoryTextHistory([ending.title, ending.identity, ending.reflection, ending.finalLine]);
-        saveStorySignature(ending.signature);
-        router.push("/ending");
-        return;
+      try {
+        const memory = createStoryMemory(state, scene, allScenes, getEndingHistory(), choice, getStoryTextHistory());
+        const fallbackConsequence = {
+          consequenceLines: choice.consequenceHint ? [choice.consequenceHint] : ["You choose it.", "The room changes a little."],
+          updatedMood: scene.mood,
+          memoryCallback: choice.consequenceHint,
+          delayedFlag: choice.flags?.[0]
+        };
+        const consequence = await withTimeout(generateConsequenceWithAI(choice, memory), fallbackConsequence);
+        setConsequenceLines(consequence.consequenceLines);
+        saveStoryTextHistory([choice.text, ...consequence.consequenceLines]);
+        const processed = processChoice(choice, state, scene);
+        const next = applyGeneratedConsequence(processed, consequence.consequenceLines, consequence.delayedFlag);
+        const adaptiveState = toStoryState(next, getStoryTextHistory());
+        const decisionFallback: DirectorDecision = {
+          action: adaptiveState.endingReadinessScore >= 88 || next.sceneHistory.length >= 25 ? "move_to_ending" : "continue_story",
+          reason: "Fallback after choice.",
+          nextScenePurpose: "Continue from the user's last choice.",
+          emotionalTarget: "quiet",
+          shouldUseFirstPersonCut: false,
+          shouldUseNoChoiceMoment: false,
+          shouldIntroduceRelationshipMoment: false,
+          endingReadinessScore: adaptiveState.endingReadinessScore,
+          avoid: adaptiveState.avoid
+        };
+        const decision = await withTimeout(directNextStep(adaptiveState), decisionFallback);
+        const shouldEnd = decision.action === "move_to_ending" || decision.endingReadinessScore >= 88 || next.sceneHistory.length >= 25;
+        if (shouldEnd) {
+          const finalState = { ...next, replayCount: hasSimilarStorySignature(next.storySignature) ? next.replayCount + 1 : next.replayCount };
+          const history = getEndingHistory();
+          const draftEnding = await generateAdaptiveEnding(toStoryState(finalState, getStoryTextHistory()), finalState, history);
+          const ending = isEndingTooSimilar(draftEnding, history) ? regenerateEndingVariant(draftEnding, finalState.profile, finalState) : draftEnding;
+          saveStoryState(finalState);
+          saveEnding(ending);
+          saveEndingHistory(ending);
+          saveStoryTextHistory([ending.title, ending.identity, ending.reflection, ending.finalLine]);
+          saveStorySignature(ending.signature);
+          router.push("/ending");
+          return;
+        }
+        setDirectorDecision(decision);
+        updateRunState(next);
+      } catch (error) {
+        console.error("Choice processing failed", error);
+      } finally {
+        setTransitioning(false);
       }
-      setDirectorDecision(decision);
-      updateRunState(next);
-      setTransitioning(false);
     }, 900);
   }, [allScenes, router, scene, state, transitioning, updateRunState]);
 
@@ -190,7 +232,7 @@ export default function StoryPage() {
                 Next scene direction: {directorDecision.reason}
               </div>
             )}
-            <SubtitleNarration key={scene.id} text={scene.narration} onComplete={handleNarrationComplete} />
+            <SubtitleNarration key={`${scene.id}-${scene.title}-${scene.narration}`} text={scene.narration} onComplete={handleNarrationComplete} />
           </div>
           <div className="grid gap-3">
             <FunLayer
