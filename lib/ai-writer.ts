@@ -6,8 +6,8 @@ import type { StoryMemory } from "@/lib/story-memory";
 import type { AIConsequenceDraft, AIEndingDraft, AISceneDraft, StoryChoice, StoryScene } from "@/lib/story-types";
 
 type AIProvider = "openai" | "generic" | "none";
-const CLIENT_AI_TIMEOUT_MS = 9000;
-const SERVER_AI_TIMEOUT_MS = 14000;
+const CLIENT_AI_TIMEOUT_MS = 18000;
+const SERVER_AI_TIMEOUT_MS = 22000;
 
 export async function callAIWriter(prompt: string) {
   if (typeof window !== "undefined") {
@@ -20,10 +20,14 @@ export async function callAIWriter(prompt: string) {
         body: JSON.stringify({ prompt }),
         signal: controller.signal
       });
-      if (!response.ok) return null;
-      const data = await response.json() as { text?: string };
-      return data.text ?? null;
-    } catch {
+      const data = await response.json().catch(() => null) as { text?: string | null; error?: string; detail?: string } | null;
+      if (!response.ok) {
+        console.error("AI writer route failed", response.status, data?.error, data?.detail);
+        return null;
+      }
+      return data?.text ?? null;
+    } catch (error) {
+      console.error("AI writer client request failed", error);
       return null;
     } finally {
       window.clearTimeout(timeout);
@@ -31,56 +35,73 @@ export async function callAIWriter(prompt: string) {
   }
 
   const provider = getProvider();
-  const key = process.env.AI_API_KEY;
-  const model = process.env.AI_MODEL || "gpt-4o-mini";
-  if (provider === "none" || !key) return null;
+  const key = getApiKey();
+  const model = process.env.AI_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini";
+  if (provider === "none" || !key) {
+    console.warn("AI writer disabled or missing API key", { provider, hasKey: Boolean(key) });
+    return null;
+  }
 
   try {
+    if (provider === "openai") {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), SERVER_AI_TIMEOUT_MS);
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model,
+            temperature: 1,
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: "You are a severe editor for grounded interactive fiction. Write connected scenes with plainspoken wit, concrete details, and strict cause-and-effect. Strict JSON only." },
+              { role: "user", content: prompt }
+            ]
+          }),
+          signal: controller.signal
+        });
+        const text = await response.text();
+        if (!response.ok) {
+          console.error("OpenAI request failed", response.status, text.slice(0, 500));
+          return null;
+        }
+        const data = JSON.parse(text) as { choices?: Array<{ message?: { content?: string } }> };
+        return data.choices?.[0]?.message?.content ?? null;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    const endpoint = process.env.AI_PROVIDER_URL;
+    if (!endpoint) return null;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SERVER_AI_TIMEOUT_MS);
-    if (provider === "openai") {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    try {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${key}`
         },
-        body: JSON.stringify({
-          model,
-          temperature: 1,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: "You are a severe editor for grounded interactive fiction. Write connected scenes with plainspoken wit, concrete details, and strict cause-and-effect. Strict JSON only." },
-            { role: "user", content: prompt }
-          ]
-        }),
+        body: JSON.stringify({ model, prompt }),
         signal: controller.signal
       });
+      const text = await response.text();
+      if (!response.ok) {
+        console.error("Generic AI request failed", response.status, text.slice(0, 500));
+        return null;
+      }
+      const data = JSON.parse(text) as { text?: string; content?: string };
+      return data.text ?? data.content ?? null;
+    } finally {
       clearTimeout(timeout);
-      if (!response.ok) return null;
-      const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-      return data.choices?.[0]?.message?.content ?? null;
     }
-
-    const endpoint = process.env.AI_PROVIDER_URL;
-    clearTimeout(timeout);
-    if (!endpoint) return null;
-    const genericController = new AbortController();
-    const genericTimeout = setTimeout(() => genericController.abort(), SERVER_AI_TIMEOUT_MS);
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`
-      },
-      body: JSON.stringify({ model, prompt }),
-      signal: genericController.signal
-    });
-    clearTimeout(genericTimeout);
-    if (!response.ok) return null;
-    const data = await response.json() as { text?: string; content?: string };
-    return data.text ?? data.content ?? null;
-  } catch {
+  } catch (error) {
+    console.error("AI writer server request failed", error);
     return null;
   }
 }
@@ -152,10 +173,14 @@ export async function generateEndingWithAI(memory: StoryMemory, fallbackState: P
 }
 
 function getProvider(): AIProvider {
-  const provider = (process.env.AI_PROVIDER || "").toLowerCase();
+  const provider = (process.env.AI_PROVIDER || (getApiKey() ? "openai" : "none")).toLowerCase();
   if (provider === "openai") return "openai";
   if (provider && provider !== "none") return "generic";
   return "none";
+}
+
+function getApiKey() {
+  return process.env.AI_API_KEY || process.env.OPENAI_API_KEY || "";
 }
 
 async function askForJson<T>(prompt: string, normalize: (value: unknown) => T | null) {
@@ -163,7 +188,8 @@ async function askForJson<T>(prompt: string, normalize: (value: unknown) => T | 
   if (!raw) return null;
   try {
     return normalize(JSON.parse(raw));
-  } catch {
+  } catch (error) {
+    console.error("AI returned invalid JSON", error, raw.slice(0, 500));
     return null;
   }
 }
