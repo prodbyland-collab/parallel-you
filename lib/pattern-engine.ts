@@ -68,7 +68,7 @@ export function detectPatterns(state: StoryRunState): EmotionalPattern[] {
     patterns.add("does_nothing_often");
   }
 
-  return [...patterns];
+  return Array.from(patterns);
 }
 
 export function strongestPattern(state: StoryRunState): EmotionalPattern | null {
