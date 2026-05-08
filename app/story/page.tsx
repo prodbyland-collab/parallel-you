@@ -50,7 +50,7 @@ export default function StoryPage() {
   }, [router]);
 
   const baseScene = useMemo(() => state ? getScene(state) : null, [state]);
-  const scene = generatedScene ?? (sceneLoading ? null : baseScene);
+  const scene = generatedScene ?? baseScene;
   const allScenes = useMemo(() => state ? getAllScenes(state) : [], [state]);
   const progressIndex = state ? Math.max(0, allScenes.findIndex((item) => item.id === state.currentSceneId)) : 0;
 
@@ -79,7 +79,7 @@ export default function StoryPage() {
       const decision = await withTimeout(directNextStep(adaptiveState), decisionFallback);
       if (cancelled) return;
       setDirectorDecision(decision);
-      const nextScene = await withTimeout(generateAdaptiveScene(adaptiveState, decision), baseScene);
+      const nextScene = await withTimeout(generateAdaptiveScene(adaptiveState, decision), baseScene, 8000);
       if (cancelled) return;
       setGeneratedScene(nextScene);
       saveStoryTextHistory([nextScene.title, nextScene.narration, ...nextScene.choices.map((choice) => choice.text)]);
@@ -96,7 +96,7 @@ export default function StoryPage() {
     return () => {
       cancelled = true;
     };
-  }, [baseScene?.id, state?.storySignature]);
+  }, [baseScene, state]);
 
   const handleNarrationComplete = useCallback(() => {
     window.setTimeout(() => setChoicesVisible(true), 500);
@@ -104,6 +104,8 @@ export default function StoryPage() {
 
   const wildcard = useMemo(() => state?.wildcardsUsed[state.wildcardsUsed.length - 1], [state]);
   const latestChaos = useMemo(() => state?.chaosEvents[state.chaosEvents.length - 1], [state]);
+  const lastChoice = state?.choices[state.choices.length - 1];
+  const openThread = state?.consequenceThreads?.find((thread) => thread.status === "open");
 
   const updateRunState = useCallback((next: StoryRunState) => {
     saveStoryState(next);
@@ -191,7 +193,7 @@ export default function StoryPage() {
   if (!state || !scene) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#03040a] text-slate-200">
-        {sceneLoading ? "Writing the next scene..." : "Loading your story..."}
+        Loading your story...
       </main>
     );
   }
@@ -227,9 +229,21 @@ export default function StoryPage() {
                 {consequenceLines.map((line) => <span key={line} className="block">{line}</span>)}
               </div>
             )}
+            {(lastChoice || openThread) && (
+              <div className="mb-3 max-w-2xl rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm leading-6 text-slate-300 backdrop-blur-xl">
+                {lastChoice && <span className="block"><b className="text-slate-100">Last choice:</b> {lastChoice.choiceText}</span>}
+                {openThread && <span className="block"><b className="text-slate-100">Still open:</b> {openThread.theme.replaceAll("_", " ")}</span>}
+              </div>
+            )}
             {directorDecision?.reason && (
-              <div className="sr-only" aria-live="polite">
-                Next scene direction: {directorDecision.reason}
+              <div className="mb-3 max-w-2xl rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm leading-6 text-slate-300 backdrop-blur-xl">
+                <span className="block text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Why this moment is here</span>
+                {directorDecision.nextScenePurpose || directorDecision.reason}
+              </div>
+            )}
+            {sceneLoading && (
+              <div className="mb-3 max-w-2xl text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                Personalizing the next details...
               </div>
             )}
             <SubtitleNarration key={`${scene.id}-${scene.title}-${scene.narration}`} text={scene.narration} onComplete={handleNarrationComplete} />

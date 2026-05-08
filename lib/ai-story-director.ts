@@ -72,7 +72,7 @@ Return:
 {
   "action": "continue_story|trigger_callback|create_pressure|trigger_wildcard|create_turning_point|slow_down|move_to_ending",
   "reason": "short plain reason",
-  "nextScenePurpose": "specific purpose for next scene",
+  "nextScenePurpose": "plain sentence explaining why this scene follows from the last choice",
   "emotionalTarget": "quiet|tense|hopeful|regretful|uncertain|warm|empty|breakthrough",
   "shouldUseFirstPersonCut": true,
   "shouldUseNoChoiceMoment": false,
@@ -101,7 +101,7 @@ function fallbackDecision(storyState: StoryState): DirectorDecision {
 
   return {
     action,
-    reason: openThread ? `The ${openThread.theme} thread is still open.` : "The story needs the next real consequence.",
+    reason: openThread ? `The ${openThread.theme.replaceAll("_", " ")} is still open.` : "The last choice needs a visible next consequence.",
     nextScenePurpose: purposeForAction(action, openThread?.theme),
     emotionalTarget: targetForState(storyState),
     shouldUseFirstPersonCut: storyState.sceneIndex % 3 === 0,

@@ -15,6 +15,11 @@ export function ChoicePanel({ choices, visible, onChoose }: { choices: StoryChoi
         >
           <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Option {index + 1}</span>
           <span className="mt-1 block text-lg font-black text-white">{choice.text}</span>
+          {choice.consequenceHint && (
+            <span className="mt-2 block text-sm font-semibold leading-5 text-slate-400">
+              {choice.consequenceHint}
+            </span>
+          )}
         </button>
       ))}
     </div>

@@ -60,6 +60,10 @@ Show through action.
 No long paragraphs.
 No repeated phrases.
 Every scene must use at least ONE concrete real-life detail.
+Make the story easy to follow.
+The first narration line should connect to the previous choice or open thread.
+The second line should show what changed.
+The third line, if used, should make the next choice clear.
 
 Good:
 "You open it... then close it again."
@@ -111,7 +115,7 @@ Return strict JSON only:
       "createsThread": "optional theme",
       "resolvesThread": "optional thread id",
       "endingInfluence": "what this proves about the user",
-      "consequenceHint": "short concrete consequence"
+      "consequenceHint": "plain hint of what this choice will change next"
     }
   ],
   "createdThreads": [],
@@ -135,7 +139,7 @@ function normalizeDraft(value: Partial<AdaptiveSceneDraft>, storyState: StorySta
         text: choice.text,
         effect: choice.effect ?? choice.effects ?? {},
         flags: choice.flagsAdded ?? choice.flags ?? [],
-        consequenceHint: choice.consequenceHint || "The room changes a little."
+        consequenceHint: choice.consequenceHint || "This choice changes what comes back next."
       })).filter((choice) => Boolean(choice.text)), storyState.shownChoices);
 
   if (!decision.shouldUseNoChoiceMoment && choices.length < 2) {
