@@ -1,8 +1,9 @@
-import type { EmotionalTone, ExperienceLevel, GoalCategory, ParsedUserProfile, PlayerProfile } from "@/lib/story-types";
+import type { EmotionalTone, ExperienceLevel, GoalCategory, ParsedUserProfile, PlayerProfile, StoryPreferences } from "@/lib/story-types";
 
 type ProfileInput = Partial<Pick<PlayerProfile, "name" | "age" | "country" | "doneSoFar" | "goals" | "goal" | "whatIf">> & {
   pastText?: string;
   goalText?: string;
+  storyPreferences?: StoryPreferences;
 };
 
 const clamp = (value: number) => Math.max(1, Math.min(10, Math.round(value)));
@@ -20,7 +21,8 @@ const categoryPatterns: Array<{ category: GoalCategory; vocabulary: string[]; pa
 export function parseUserProfile(input: ProfileInput): ParsedUserProfile {
   const past = input.pastText ?? input.doneSoFar ?? "";
   const goal = input.goalText ?? input.goals ?? input.goal ?? "";
-  const text = `${past} ${goal} ${input.whatIf ?? ""} ${input.country ?? ""}`.toLowerCase();
+  const preferenceText = input.storyPreferences ? Object.values(input.storyPreferences).flat().join(" ") : "";
+  const text = `${past} ${goal} ${input.whatIf ?? ""} ${input.country ?? ""} ${preferenceText}`.toLowerCase();
   const categoryMatch = categoryPatterns.find((entry) => entry.pattern.test(text));
   const goalCategory = categoryMatch?.category ?? "general";
   const personalVocabulary = categoryMatch?.vocabulary ?? ["work", "step", "progress", "people", "future"];
@@ -61,8 +63,20 @@ export function parseUserProfile(input: ProfileInput): ParsedUserProfile {
     keyThemes: getThemes(text),
     regrets,
     possibleRegrets: regrets,
-    personalVocabulary
+    personalVocabulary: Array.from(new Set([...personalVocabulary, ...getPreferenceVocabulary(input.storyPreferences)])),
+    storyPreferences: input.storyPreferences
   };
+}
+
+function getPreferenceVocabulary(preferences?: StoryPreferences) {
+  if (!preferences) return [];
+  return [
+    ...preferences.likes,
+    ...preferences.dislikes,
+    ...preferences.behaviorPatterns,
+    ...preferences.pressureSources,
+    ...preferences.supportStyle
+  ].map((item) => item.toLowerCase().split(/\s+/)[0]).filter(Boolean).slice(0, 8);
 }
 
 function scoreSignals(text: string, patterns: { positive: RegExp; negative: RegExp }) {

@@ -68,6 +68,7 @@ function buildNarrativeThread(state: StoryRunState, scene: StoryScene, lastChoic
   const pieces = [
     `Current scene: ${scene.title}.`,
     `What is on screen now: ${scene.narration}`,
+    state.profile.storyPreferences ? `Personal hooks: ${Object.values(state.profile.storyPreferences).flat().join(", ")}.` : "",
     previous ? `Last real choice: ${previous.choiceText}.` : "This is the beginning.",
     lastChoice ? `Choice being considered now: ${lastChoice.text}.` : "",
     state.emotionalConsequences?.length ? `Recent consequence: ${state.emotionalConsequences[state.emotionalConsequences.length - 1]}.` : "",

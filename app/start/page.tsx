@@ -7,7 +7,7 @@ import Link from "next/link";
 import { parseUserProfile } from "@/lib/profile-parser";
 import { createInitialRun } from "@/lib/story-engine";
 import { clearStoryState, saveStoryState } from "@/lib/story-storage";
-import type { PlayerProfile } from "@/lib/story-types";
+import type { PlayerProfile, StoryPreferences } from "@/lib/story-types";
 
 type IntroInput = {
   name: string;
@@ -15,6 +15,13 @@ type IntroInput = {
   country: string;
   doneSoFar: string;
   goals: string;
+  importantPeople: string[];
+  behaviorPatterns: string[];
+  likes: string[];
+  dislikes: string[];
+  pressureSources: string[];
+  supportStyle: string[];
+  storyVibe: string[];
 };
 
 const initialInput: IntroInput = {
@@ -22,45 +29,39 @@ const initialInput: IntroInput = {
   age: 25,
   country: "",
   doneSoFar: "",
-  goals: ""
+  goals: "",
+  importantPeople: [],
+  behaviorPatterns: [],
+  likes: [],
+  dislikes: [],
+  pressureSources: [],
+  supportStyle: [],
+  storyVibe: []
 };
 
+const selectGroups = {
+  importantPeople: ["Friend", "Stranger", "Mentor", "Old connection", "Family", "No one right now"],
+  behaviorPatterns: ["I overthink", "I start then stop", "I avoid messages", "I work late", "I compare myself", "I come back after quitting"],
+  likes: ["Quiet rooms", "Night walks", "Coffee", "Music", "Clean desks", "Rain", "Small wins", "Honest people"],
+  dislikes: ["Fake motivation", "Being rushed", "Loud advice", "Messy plans", "Feeling watched", "Waiting too long"],
+  pressureSources: ["Money", "Family", "Time", "Social media", "No progress", "Someone expecting an answer"],
+  supportStyle: ["Push me gently", "Tell me the truth", "Make it funny", "Leave me alone first", "Remind me later", "Give me one small step"],
+  storyVibe: ["Grounded", "A little funny", "Quiet", "Emotional", "Tense", "Hopeful", "Lonely", "Warm"]
+} satisfies Record<keyof StoryPreferences, string[]>;
+
 const steps = [
-  {
-    key: "name",
-    question: "What should we call you?",
-    hint: "A name, nickname, or whatever feels like you.",
-    placeholder: "Giorgi",
-    type: "text"
-  },
-  {
-    key: "age",
-    question: "How old are you?",
-    hint: "This helps place the story in your real life.",
-    placeholder: "25",
-    type: "number"
-  },
-  {
-    key: "country",
-    question: "Where are you right now?",
-    hint: "Country, city, or the place this chapter starts.",
-    placeholder: "Georgia",
-    type: "text"
-  },
-  {
-    key: "doneSoFar",
-    question: "What has your life been like so far?",
-    hint: "Write naturally. What have you tried, avoided, built, lost, repeated, or kept thinking about?",
-    placeholder: "I make music but I am inconsistent. I have posted a few beats, but I keep stopping...",
-    type: "textarea"
-  },
-  {
-    key: "goals",
-    question: "What do you want to become?",
-    hint: "Say it plainly. The story will listen for the real goal underneath.",
-    placeholder: "I want to become a successful producer and finally release music people care about.",
-    type: "textarea"
-  }
+  { key: "name", question: "What should we call you?", hint: "A name, nickname, or whatever feels like you.", placeholder: "Giorgi", type: "text" },
+  { key: "age", question: "How old are you?", hint: "This helps place the story in your real life.", placeholder: "25", type: "number" },
+  { key: "country", question: "Where are you right now?", hint: "Country, city, or the place this chapter starts.", placeholder: "Georgia", type: "text" },
+  { key: "doneSoFar", question: "What has your life been like so far?", hint: "Write naturally. What have you tried, avoided, built, lost, repeated, or kept thinking about?", placeholder: "I make music but I am inconsistent. I have posted a few beats, but I keep stopping...", type: "textarea" },
+  { key: "goals", question: "What do you want to become?", hint: "Say it plainly. The story will listen for the real goal underneath.", placeholder: "I want to become a successful producer and finally release music people care about.", type: "textarea" },
+  { key: "importantPeople", question: "Who should life bring into the story?", hint: "Pick the kinds of people that feel real in your life.", type: "select" },
+  { key: "behaviorPatterns", question: "What do you usually do when things get hard?", hint: "Choose the habits the story should notice.", type: "select" },
+  { key: "likes", question: "What small details feel like you?", hint: "These become objects, rooms, and callbacks.", type: "select" },
+  { key: "dislikes", question: "What should the story avoid?", hint: "This helps the writing feel less fake.", type: "select" },
+  { key: "pressureSources", question: "What pressure follows you around?", hint: "Pick what makes choices harder.", type: "select" },
+  { key: "supportStyle", question: "How should the story push you?", hint: "Not scores. Just the kind of voice that fits.", type: "select" },
+  { key: "storyVibe", question: "What should the movie of your life feel like?", hint: "Pick a few tones.", type: "select" }
 ] as const;
 
 export default function StartPage() {
@@ -75,12 +76,21 @@ export default function StartPage() {
   const canContinue = useMemo(() => {
     if (isFinalScreen) return true;
     const value = input[step.key as keyof IntroInput];
+    if (Array.isArray(value)) return value.length > 0;
     if (typeof value === "number") return value > 0;
     return value.trim().length > 0;
   }, [input, isFinalScreen, step]);
 
   const updateInput = (key: keyof IntroInput, value: string | number) => {
     setInput((current) => ({ ...current, [key]: value }));
+  };
+
+  const toggleOption = (key: keyof StoryPreferences, option: string) => {
+    setInput((current) => {
+      const selected = current[key];
+      const next = selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option].slice(0, 4);
+      return { ...current, [key]: next };
+    });
   };
 
   const next = () => {
@@ -95,7 +105,16 @@ export default function StartPage() {
   const begin = () => {
     setIsStarting(true);
     clearStoryState();
-    const parsedProfile = parseUserProfile(input);
+    const storyPreferences: StoryPreferences = {
+      importantPeople: input.importantPeople,
+      behaviorPatterns: input.behaviorPatterns,
+      likes: input.likes,
+      dislikes: input.dislikes,
+      pressureSources: input.pressureSources,
+      supportStyle: input.supportStyle,
+      storyVibe: input.storyVibe
+    };
+    const parsedProfile = parseUserProfile({ ...input, storyPreferences });
     const profile: PlayerProfile = {
       name: input.name,
       age: input.age,
@@ -110,6 +129,7 @@ export default function StartPage() {
       creativity: parsedProfile.creativity,
       social: parsedProfile.social,
       confidence: parsedProfile.confidence,
+      storyPreferences,
       parsedProfile
     };
     const run = createInitialRun(profile);
@@ -146,22 +166,20 @@ export default function StartPage() {
 
                   <div className="mt-8">
                     {step.type === "textarea" ? (
-                      <textarea
-                        value={String(input[step.key])}
-                        onChange={(event) => updateInput(step.key, event.target.value)}
-                        placeholder={step.placeholder}
-                        autoFocus
-                        className="min-h-52 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-lg leading-8 text-white outline-none transition placeholder:text-slate-500 focus:border-white/30"
-                      />
+                      <textarea value={String(input[step.key])} onChange={(event) => updateInput(step.key, event.target.value)} placeholder={step.placeholder} autoFocus className="min-h-52 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-lg leading-8 text-white outline-none transition placeholder:text-slate-500 focus:border-white/30" />
+                    ) : step.type === "select" ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {selectGroups[step.key].map((option) => {
+                          const selected = input[step.key].includes(option);
+                          return (
+                            <button key={option} onClick={() => toggleOption(step.key, option)} className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold leading-6 transition ${selected ? "border-cyan-200 bg-cyan-200/15 text-white" : "border-white/10 bg-white/[0.05] text-slate-300 hover:border-white/25"}`}>
+                              {option}
+                            </button>
+                          );
+                        })}
+                      </div>
                     ) : (
-                      <input
-                        value={String(input[step.key])}
-                        onChange={(event) => updateInput(step.key, step.type === "number" ? Number(event.target.value) : event.target.value)}
-                        placeholder={step.placeholder}
-                        type={step.type}
-                        autoFocus
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-2xl font-bold text-white outline-none transition placeholder:text-slate-500 focus:border-white/30"
-                      />
+                      <input value={String(input[step.key])} onChange={(event) => updateInput(step.key, step.type === "number" ? Number(event.target.value) : event.target.value)} placeholder={step.placeholder} type={step.type} autoFocus className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-2xl font-bold text-white outline-none transition placeholder:text-slate-500 focus:border-white/30" />
                     )}
                   </div>
 
@@ -177,7 +195,7 @@ export default function StartPage() {
                   <p className="cinema-kicker">Opening scene ready</p>
                   <h1 className="mx-auto mt-4 max-w-2xl text-4xl font-black leading-tight text-white sm:text-6xl">Alright... let&apos;s see where your story goes.</h1>
                   <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300">
-                    We will not show scores or labels. Your words quietly shape the scenes, choices, memories, and ending.
+                    Your words, habits, people, likes, dislikes, and pressure points will shape the scenes.
                   </p>
                   <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-center">
                     <button onClick={previous} className="game-button justify-center">Previous</button>

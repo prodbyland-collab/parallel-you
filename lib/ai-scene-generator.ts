@@ -79,6 +79,7 @@ Bad:
 
 Use:
 - user profile: ${storyState.profile.doneSoFar} / ${storyState.profile.goals || storyState.profile.goal}
+- personal story menu: ${storyState.profile.storyPreferences ? JSON.stringify(storyState.profile.storyPreferences) : "none"}
 - goal category: ${storyState.profile.parsedProfile?.goalCategory ?? "general"}
 - current act: ${storyState.currentAct}
 - scene index: ${storyState.sceneIndex}

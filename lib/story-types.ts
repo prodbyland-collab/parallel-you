@@ -17,7 +17,18 @@ export type PlayerProfile = {
   creativity: number;
   social: number;
   confidence: number;
+  storyPreferences?: StoryPreferences;
   parsedProfile?: ParsedUserProfile;
+};
+
+export type StoryPreferences = {
+  importantPeople: string[];
+  behaviorPatterns: string[];
+  likes: string[];
+  dislikes: string[];
+  pressureSources: string[];
+  supportStyle: string[];
+  storyVibe: string[];
 };
 
 export type GoalCategory = "music" | "business" | "fitness" | "writing" | "career" | "school" | "relationship" | "personal" | "general";
@@ -39,6 +50,7 @@ export type ParsedUserProfile = {
   regrets: string[];
   possibleRegrets: string[];
   personalVocabulary: string[];
+  storyPreferences?: StoryPreferences;
 };
 
 export type HiddenTraits = {
